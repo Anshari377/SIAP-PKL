@@ -62,19 +62,19 @@ const statusLabel = (status) => {
             <div class="lg:col-span-2 space-y-6">
                 <!-- Info Lengkap -->
                 <div class="glass-panel p-6 sm:p-8">
-                    <div class="mb-6 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
+                    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex min-w-0 items-center gap-4">
                             <div class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-forest-600/10 text-forest-700">
                                 <svg viewBox="0 0 24 24" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8">
                                     <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/>
                                 </svg>
                             </div>
-                            <div>
-                                <h2 class="font-display text-2xl font-bold text-ink-900">{{ instansi.nama }}</h2>
+                            <div class="min-w-0">
+                                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink-900">{{ instansi.nama }}</h2>
                                 <p class="mt-1 text-sm text-ink-500">Terdaftar sejak {{ instansi.created_at }}</p>
                             </div>
                         </div>
-                        <span :class="tipeBadge()" class="badge">
+                        <span :class="tipeBadge()" class="badge w-fit shrink-0">
                             {{ tipeLabel() }}
                         </span>
                     </div>

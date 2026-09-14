@@ -3,7 +3,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const lowongan = ref({
+const bidang = ref({
     id: 1,
     nama: 'Aplikasi dan Layanan E-Government',
     instansi: 'Diskominfo Kaltim',
@@ -22,13 +22,13 @@ const lowongan = ref({
 });
 
 const handleToggleStatus = () => {
-    lowongan.value.status = lowongan.value.status === 'aktif' ? 'nonaktif' : 'aktif';
+    bidang.value.status = bidang.value.status === 'aktif' ? 'nonaktif' : 'aktif';
 };
 </script>
 
 <template>
-    <Head title="Detail Lowongan" />
-    <AppLayout title="Detail Lowongan PKL">
+    <Head title="Detail Bidang" />
+    <AppLayout title="Detail Bidang PKL">
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Left: Detail Info -->
             <div class="lg:col-span-2 space-y-6">
@@ -36,25 +36,25 @@ const handleToggleStatus = () => {
                 <div class="glass-panel p-6 sm:p-8">
                     <div class="mb-6 flex items-center justify-between">
                         <div>
-                            <h2 class="font-display text-2xl font-bold text-ink-900">{{ lowongan.nama }}</h2>
-                            <p class="mt-1 text-sm text-ink-500">{{ lowongan.instansi }} · Dibuat {{ lowongan.created_at }}</p>
+                            <h2 class="font-display text-2xl font-bold text-ink-900">{{ bidang.nama }}</h2>
+                            <p class="mt-1 text-sm text-ink-500">{{ bidang.instansi }} · Dibuat {{ bidang.created_at }}</p>
                         </div>
                         <span
-                            :class="lowongan.status === 'aktif' ? 'badge-success' : 'badge-danger'"
+                            :class="bidang.status === 'aktif' ? 'badge-success' : 'badge-danger'"
                             class="badge"
                         >
-                            {{ lowongan.status === 'aktif' ? 'Aktif' : 'Nonaktif' }}
+                            {{ bidang.status === 'aktif' ? 'Aktif' : 'Nonaktif' }}
                         </span>
                     </div>
 
                     <div class="space-y-5">
                         <div>
                             <h3 class="text-xs font-medium text-ink-500 uppercase tracking-wider mb-2">Deskripsi Bidang</h3>
-                            <p class="text-sm text-ink-800 leading-relaxed">{{ lowongan.deskripsi }}</p>
+                            <p class="text-sm text-ink-800 leading-relaxed">{{ bidang.deskripsi }}</p>
                         </div>
                         <div class="border-t border-ink-300/30 pt-4">
                             <h3 class="text-xs font-medium text-ink-500 uppercase tracking-wider mb-2">Kualifikasi</h3>
-                            <p class="text-sm text-ink-800 leading-relaxed">{{ lowongan.kualifikasi }}</p>
+                            <p class="text-sm text-ink-800 leading-relaxed">{{ bidang.kualifikasi }}</p>
                         </div>
                     </div>
                 </div>
@@ -77,7 +77,7 @@ const handleToggleStatus = () => {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-ink-300/20">
-                                <tr v-for="(pos, index) in lowongan.posisi" :key="pos.id" class="transition hover:bg-forest-50/60">
+                                <tr v-for="(pos, index) in bidang.posisi" :key="pos.id" class="transition hover:bg-forest-50/60">
                                     <td class="px-4 py-3.5 text-ink-500">{{ index + 1 }}</td>
                                     <td class="px-4 py-3.5 font-semibold text-ink-900">{{ pos.nama }}</td>
                                     <td class="px-4 py-3.5 text-ink-700">{{ pos.kuota }}</td>
@@ -102,24 +102,24 @@ const handleToggleStatus = () => {
                     </h3>
                     <div>
                         <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Total Kuota</p>
-                        <p class="mt-1 font-display text-2xl font-bold text-ink-900">{{ lowongan.kuota_total }}</p>
+                        <p class="mt-1 font-display text-2xl font-bold text-ink-900">{{ bidang.kuota_total }}</p>
                     </div>
                     <div>
                         <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Terisi</p>
-                        <p class="mt-1 font-display text-2xl font-bold text-forest-700">{{ lowongan.terisi_total }}</p>
+                        <p class="mt-1 font-display text-2xl font-bold text-forest-700">{{ bidang.terisi_total }}</p>
                     </div>
                     <div>
                         <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Sisa Kuota</p>
-                        <p class="mt-1 font-display text-2xl font-bold" :class="lowongan.kuota_total - lowongan.terisi_total > 0 ? 'text-status-success' : 'text-status-danger'">
-                            {{ lowongan.kuota_total - lowongan.terisi_total }}
+                        <p class="mt-1 font-display text-2xl font-bold" :class="bidang.kuota_total - bidang.terisi_total > 0 ? 'text-status-success' : 'text-status-danger'">
+                            {{ bidang.kuota_total - bidang.terisi_total }}
                         </p>
                     </div>
                     <div class="pt-3 border-t border-ink-300/30 space-y-2">
-                        <Link :href="route('admin.lowongan.edit', lowongan.id)" class="btn-primary w-full text-center text-sm">
-                            Edit Lowongan
+                        <Link :href="route('admin.bidang.edit', bidang.id)" class="btn-primary w-full text-center text-sm">
+                            Edit Bidang
                         </Link>
                         <button @click="handleToggleStatus" class="btn-secondary w-full text-sm">
-                            {{ lowongan.status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }} Lowongan
+                            {{ bidang.status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }} Bidang
                         </button>
                     </div>
                 </div>

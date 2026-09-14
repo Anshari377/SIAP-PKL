@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 
 const handleGoogleLogin = () => {
     window.location.href = route('auth.google');
@@ -7,7 +7,7 @@ const handleGoogleLogin = () => {
 </script>
 
 <template>
-    <Head title="Masuk - Portal PKL Diskominfo Kaltim" />
+    <Head title="Masuk - SIAP-PKL Diskominfo Kaltim" />
 
     <main class="relative grid min-h-screen bg-surface lg:grid-cols-12 overflow-hidden">
         <!-- Panel Kiri (Hidden di Mobile - 7 Cols) - Rich Dark Forest Gradient + Geometric Decorations.
@@ -89,7 +89,7 @@ const handleGoogleLogin = () => {
                     </svg>
                 </div>
                 <div>
-                    <span class="block font-display text-lg font-bold tracking-tight text-white">PKL Flow</span>
+                    <span class="block font-display text-lg font-bold tracking-tight text-white">SIAP-PKL</span>
                     <span class="block text-[10px] font-semibold uppercase tracking-widest text-gold-400">Diskominfo Kaltim</span>
                 </div>
             </div>
@@ -123,13 +123,13 @@ const handleGoogleLogin = () => {
                     </svg>
                 </div>
                 <div>
-                    <h2 class="font-display text-lg font-bold text-ink-900">PKL Flow</h2>
+                    <h2 class="font-display text-lg font-bold text-ink-900">SIAP-PKL</h2>
                     <p class="text-xs font-medium text-forest-700 uppercase tracking-wider">Diskominfo Kaltim</p>
                 </div>
             </div>
 
             <!-- Main Form Card Container -->
-            <div class="relative w-full max-w-md overflow-hidden rounded-3xl border border-ink-300/40 bg-white p-8 sm:p-10 shadow-[0_20px_50px_rgba(15,74,48,0.08)] backdrop-blur-xl">
+            <div class="relative w-full max-w-md overflow-hidden rounded-3xl border border-ink-300/40 bg-white p-6 shadow-[0_20px_50px_rgba(15,74,48,0.08)] backdrop-blur-xl sm:p-10">
                 <!-- Top Color Accent Bar -->
                 <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-forest-800 via-gold-400 to-forest-600" />
 
@@ -161,6 +161,10 @@ const handleGoogleLogin = () => {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                     </button>
+
+                    <Link :href="route('katalog.index')" class="block text-center text-xs font-medium text-forest-700 hover:underline">
+                        Lihat Katalog Bidang PKL tanpa login
+                    </Link>
                 </div>
 
                 <!-- Legal Footer -->

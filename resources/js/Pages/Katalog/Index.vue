@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import PublicLayout from '@/Layouts/PublicLayout.vue';
 import BidangCard from '@/Components/BidangCard.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
@@ -44,7 +44,7 @@ const statCards = computed(() => [
 ]);
 
 const handleFilter = () => {
-    router.get(route('lowongan.index'), {
+    router.get(route('katalog.index'), {
         search: search.value,
         instansi: instansi.value,
         status: status.value,
@@ -55,29 +55,31 @@ const resetFilters = () => {
     search.value = '';
     instansi.value = '';
     status.value = '';
-    router.get(route('lowongan.index'), {}, { preserveState: true, preserveScroll: true });
+    router.get(route('katalog.index'), {}, { preserveState: true, preserveScroll: true });
 };
 </script>
 
 <template>
-    <Head title="Bidang PKL" />
-    <AppLayout title="Bidang PKL">
-        <div class="mx-auto max-w-6xl">
-            <!-- Header -->
-            <div class="mb-6">
-                <p class="text-xs font-semibold uppercase tracking-widest text-forest-700">
-                    SIAP-PKL · Bidang Praktik Kerja Lapangan
+    <Head title="Katalog Bidang PKL" />
+    <PublicLayout>
+        <!-- Hero -->
+        <section class="bg-gradient-to-br from-forest-950 via-forest-900 to-forest-800 text-white">
+            <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+                <p class="text-xs font-semibold uppercase tracking-widest text-gold-400">
+                    SIAP-PKL · Dinas Komunikasi dan Informatika Provinsi Kalimantan Timur
                 </p>
-                <h2 class="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
-                    Bidang PKL
-                </h2>
-                <p class="mt-2 max-w-2xl text-sm leading-relaxed text-ink-500">
-                    Jelajahi seluruh bidang PKL dari berbagai instansi, lengkap dengan kuota, jurusan yang dicari, dan ketersediaannya. Pilih bidang yang sesuai lalu lakukan pengajuan.
+                <h1 class="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+                    Katalog Bidang Praktik Kerja Lapangan
+                </h1>
+                <p class="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
+                    Jelajahi daftar bidang PKL beserta kuota, jurusan yang dicari, dan ketersediaannya. Untuk mendaftar, silakan masuk terlebih dahulu menggunakan akun Google Anda.
                 </p>
             </div>
+        </section>
 
-            <!-- Statistik -->
-            <div class="glass-panel p-4 shadow-sm sm:p-5 mb-6">
+        <!-- Statistik -->
+        <section class="mx-auto max-w-6xl px-4 sm:px-6">
+            <div class="glass-panel -mt-6 p-4 shadow-lg sm:p-5">
                 <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
                     <div
                         v-for="stat in statCards"
@@ -94,9 +96,11 @@ const resetFilters = () => {
                     </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Filter -->
-            <form @submit.prevent="handleFilter" class="glass-panel rounded-3xl p-4 shadow-lg sm:p-5 mb-8">
+        <!-- Filter -->
+        <section class="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
+            <form @submit.prevent="handleFilter" class="glass-panel rounded-3xl p-4 shadow-lg sm:p-5">
                 <div class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_240px_260px_auto]">
                     <div class="relative">
                         <div class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-ink-400">
@@ -146,15 +150,17 @@ const resetFilters = () => {
                     </div>
                 </div>
             </form>
+        </section>
 
-            <!-- Grid Bidang -->
+        <!-- Grid Bidang -->
+        <section class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
             <div v-if="divisions.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 <BidangCard
                     v-for="item in divisions"
                     :key="item.id"
                     :item="item"
-                    :detail-href="route('lowongan.show', item.slug)"
-                    :primary="{ label: 'Daftar Sekarang', href: route('pengajuan.index', { division: item.id }) }"
+                    :detail-href="route('katalog.show', item.slug)"
+                    :primary="{ label: 'Daftar Sekarang', href: route('auth.google') }"
                 />
             </div>
 
@@ -174,6 +180,6 @@ const resetFilters = () => {
                     Atur Ulang Filter
                 </button>
             </div>
-        </div>
-    </AppLayout>
+        </section>
+    </PublicLayout>
 </template>

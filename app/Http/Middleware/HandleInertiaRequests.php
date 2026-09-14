@@ -35,6 +35,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user() ? array_merge($request->user()->toArray(), [
                     'tipe_pendaftaran' => $request->user()->tipe_pendaftaran,
                 ]) : null,
+                'roles' => $request->user() ? $request->user()->getRoleNames() : [],
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

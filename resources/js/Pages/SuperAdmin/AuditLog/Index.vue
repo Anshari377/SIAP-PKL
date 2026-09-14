@@ -26,8 +26,8 @@ const logList = ref([
         { field: 'Status Pengajuan', old: 'pending', new: 'rejected' },
         { field: 'Alasan', old: '-', new: 'Berkas tidak lengkap.' },
     ] },
-    { id: 5, waktu: '2026-09-07 10:22:00', user: 'Rina Marlina', aksi: 'Ubah Status Lowongan', instansi: 'BANKALTIMTARA', ip: '36.85.33.81', perubahan: [
-        { field: 'Status Lowongan', old: 'nonaktif', new: 'aktif' },
+    { id: 5, waktu: '2026-09-07 10:22:00', user: 'Rina Marlina', aksi: 'Ubah Status Bidang', instansi: 'BANKALTIMTARA', ip: '36.85.33.81', perubahan: [
+        { field: 'Status Bidang', old: 'nonaktif', new: 'aktif' },
     ] },
     { id: 6, waktu: '2026-09-06 16:44:00', user: 'Admin Pusat', aksi: 'Tambah Instansi', instansi: 'PT Telkom Indonesia Witel Samarinda', ip: '103.20.75.11', perubahan: [
         { field: 'Nama Instansi', old: '-', new: 'PT Telkom Indonesia Witel Samarinda' },
@@ -43,8 +43,8 @@ const logList = ref([
         { field: 'Nama Peserta', old: '-', new: 'Reza Pratama' },
         { field: 'Kuota Terpakai', old: '4', new: '5' },
     ] },
-    { id: 10, waktu: '2026-09-05 10:04:00', user: 'Lina Marlina', aksi: 'Ubah Status Lowongan', instansi: 'Dinas Pendidikan Kaltim', ip: '114.122.200.15', perubahan: [
-        { field: 'Status Lowongan', old: 'aktif', new: 'nonaktif' },
+    { id: 10, waktu: '2026-09-05 10:04:00', user: 'Lina Marlina', aksi: 'Ubah Status Bidang', instansi: 'Dinas Pendidikan Kaltim', ip: '114.122.200.15', perubahan: [
+        { field: 'Status Bidang', old: 'aktif', new: 'nonaktif' },
     ] },
     { id: 11, waktu: '2026-09-04 15:41:00', user: 'Admin Pusat', aksi: 'Undang Admin', instansi: 'Diskominfo Kaltim', ip: '103.20.75.11', perubahan: [
         { field: 'Email Calon Admin', old: '-', new: 'rudi.hartono@diskominfo.kaltim.go.id' },
@@ -80,7 +80,7 @@ const aksiOptions = [
     'Tolak Pengajuan',
     'Tambah Walk-in',
     'Ubah Kuota',
-    'Ubah Status Lowongan',
+    'Ubah Status Bidang',
     'Tambah Bidang',
     'Tambah Instansi',
     'Undang Admin',

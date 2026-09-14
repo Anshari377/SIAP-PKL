@@ -7,7 +7,7 @@ use App\Models\Division;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class LowonganController extends Controller
+class PublicCatalogController extends Controller
 {
     use InteractsWithDivisions;
 
@@ -26,8 +26,7 @@ class LowonganController extends Controller
 
         $filters = $request->only('search', 'instansi', 'status');
 
-        return Inertia::render('Lowongan/Index', [
-            'activeNav' => 'lowongan',
+        return Inertia::render('Katalog/Index', [
             'divisions' => $this->filterDivisions($divisions, $filters)->values(),
             'instansi' => $instansiList,
             'stats' => $stats,
@@ -42,8 +41,7 @@ class LowonganController extends Controller
             ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')])
             ->firstOrFail();
 
-        return Inertia::render('Lowongan/Show', [
-            'activeNav' => 'lowongan',
+        return Inertia::render('Katalog/Show', [
             'division' => $this->withQuota($division),
         ]);
     }

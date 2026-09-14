@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
 
 const stats = ref({
-    total_lowongan: 6,
+    total_bidang: 6,
     pengajuan_baru: 14,
     menunggu_verifikasi: 8,
     peserta_aktif: 23,
@@ -19,7 +19,7 @@ const pengajuanTerbaru = ref([
     { id: 5, nama: 'Dedi Kurniawan', bidang: 'Infrastruktur Jaringan', posisi: 'Tech Support', tanggal: '01 Sep 2026', status: 'accepted' },
 ]);
 
-const lowonganAktif = ref([
+const bidangAktif = ref([
     { id: 1, nama: 'Aplikasi dan Layanan E-Government', kuota: 8, terisi: 5 },
     { id: 2, nama: 'Infrastruktur Jaringan dan Server', kuota: 6, terisi: 4 },
     { id: 3, nama: 'Sekretariat dan Tata Usaha', kuota: 4, terisi: 3 },
@@ -39,10 +39,10 @@ const lowonganAktif = ref([
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
-                    <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Total Lowongan</p>
+                    <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Total Bidang</p>
                     <span class="rounded-full bg-forest-500/10 px-2 py-0.5 text-[10px] font-semibold text-forest-600">Aktif</span>
                 </div>
-                <p class="mt-3 font-display text-3xl font-bold text-ink-900">{{ stats.total_lowongan }}</p>
+                <p class="mt-3 font-display text-3xl font-bold text-ink-900">{{ stats.total_bidang }}</p>
                 <svg class="mt-3 h-6 w-full text-forest-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">
                     <path d="M1 19 L16 15 L29 17 L44 9 L59 13 L74 6 L90 10 L105 3 L119 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
@@ -115,15 +115,15 @@ const lowonganAktif = ref([
                 </div>
             </div>
 
-            <!-- Right: Lowongan Aktif -->
+            <!-- Right: Bidang Aktif -->
             <div class="glass-panel p-6">
                 <div class="mb-4 flex items-center justify-between">
-                    <h3 class="font-display text-base font-bold text-ink-900">Lowongan Aktif</h3>
-                    <Link :href="route('admin.lowongan.index')" class="text-xs font-semibold text-forest-700 hover:underline">Lihat semua</Link>
+                    <h3 class="font-display text-base font-bold text-ink-900">Bidang Aktif</h3>
+                    <Link :href="route('admin.bidang.index')" class="text-xs font-semibold text-forest-700 hover:underline">Lihat semua</Link>
                 </div>
 
                 <ul class="space-y-4">
-                    <li v-for="item in lowonganAktif" :key="item.id" class="rounded-xl border border-ink-300/40 bg-white/50 p-4 shadow-sm">
+                    <li v-for="item in bidangAktif" :key="item.id" class="rounded-xl border border-ink-300/40 bg-white/50 p-4 shadow-sm">
                         <div class="flex items-center justify-between">
                             <p class="text-sm font-semibold text-ink-900">{{ item.nama }}</p>
                             <span class="text-xs font-medium text-ink-500">{{ item.terisi }}/{{ item.kuota }}</span>

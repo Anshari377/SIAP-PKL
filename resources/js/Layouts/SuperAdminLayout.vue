@@ -1,12 +1,20 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 
 defineProps({ title: { type: String, default: '' } });
 
 const page = usePage();
 const sidebarOpen = ref(true);
+const mobileOpen = ref(false);
 const avatarFailed = ref(false);
+
+watch(
+    () => page.url,
+    () => {
+        mobileOpen.value = false;
+    },
+);
 
 const superAdminNav = [
     { label: 'Dashboard', href: route('superadmin.dashboard'), active: 'superadmin.dashboard', icon: 'home' },
@@ -20,10 +28,20 @@ const current = page.props.activeNav ?? '';
 
 <template>
     <div class="flex min-h-screen bg-surface">
+        <!-- Mobile Backdrop -->
+        <div
+            v-if="mobileOpen"
+            class="fixed inset-0 z-30 bg-ink-950/60 backdrop-blur-sm md:hidden"
+            @click="mobileOpen = false"
+        />
+
         <!-- Sidebar - Dark Green Gradient with Ulap Doyo Batik Pattern -->
         <aside
-            :class="[sidebarOpen ? 'w-64' : 'w-[76px]']"
-            class="relative flex flex-col shrink-0 overflow-visible bg-gradient-to-b from-forest-950 via-forest-800 to-forest-600 text-white transition-all duration-200"
+            :class="[
+                mobileOpen ? 'translate-x-0' : '-translate-x-full',
+                sidebarOpen ? 'md:w-64' : 'md:w-[76px]',
+            ]"
+            class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col overflow-visible bg-gradient-to-b from-forest-950 via-forest-800 to-forest-600 text-white transition-all duration-200 md:static md:translate-x-0"
         >
             <!-- Ulap Doyo Batik SVG Pattern Watermark -->
             <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.07]" aria-hidden="true">
@@ -46,14 +64,25 @@ const current = page.props.activeNav ?? '';
                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </div>
-                <div v-if="sidebarOpen" class="flex flex-col">
-                    <span class="font-display text-base font-bold tracking-tight text-white">PKL Flow</span>
+                <div v-if="sidebarOpen || mobileOpen" class="flex flex-col">
+                    <span class="font-display text-base font-bold tracking-tight text-white">SIAP-PKL</span>
                     <span class="text-[10px] text-gold-400 font-medium tracking-wider uppercase">Super Admin</span>
                 </div>
+                <button
+                    v-if="mobileOpen"
+                    type="button"
+                    class="ml-auto grid h-8 w-8 place-items-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white md:hidden"
+                    @click="mobileOpen = false"
+                    aria-label="Tutup menu"
+                >
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>
+                    </svg>
+                </button>
             </div>
 
             <!-- Navigation Links -->
-            <nav class="flex flex-1 flex-col px-3 py-4">
+            <nav class="flex flex-1 flex-col px-3 py-4 overflow-y-auto">
                 <Link
                     v-for="item in superAdminNav"
                     :key="item.href"
@@ -64,6 +93,7 @@ const current = page.props.activeNav ?? '';
                             : 'text-white/70 hover:bg-white/5 hover:text-white border-l-4 border-transparent',
                     ]"
                     class="flex items-center gap-3 px-4 py-3 text-sm transition-colors duration-200"
+                    @click="mobileOpen = false"
                 >
                     <span class="grid h-5 w-5 shrink-0 place-items-center">
                         <template v-if="item.icon === 'home'">
@@ -87,13 +117,13 @@ const current = page.props.activeNav ?? '';
                             </svg>
                         </template>
                     </span>
-                    <span v-if="sidebarOpen" class="truncate">{{ item.label }}</span>
+                    <span v-if="sidebarOpen || mobileOpen" class="truncate">{{ item.label }}</span>
                 </Link>
             </nav>
 
-            <!-- Toggle Sidebar -->
+            <!-- Toggle Sidebar (desktop) -->
             <button
-                class="relative m-3 flex items-center justify-center rounded-lg py-2 text-white/60 hover:bg-white/5 hover:text-white"
+                class="relative m-3 hidden items-center justify-center rounded-lg py-2 text-white/60 hover:bg-white/5 hover:text-white md:flex"
                 @click="sidebarOpen = !sidebarOpen"
             >
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
@@ -105,10 +135,22 @@ const current = page.props.activeNav ?? '';
         <!-- Main Content Area -->
         <div class="flex flex-1 flex-col min-w-0">
             <!-- Floating Glass Header -->
-            <header class="glass-panel m-3 flex items-center justify-between px-6 py-3.5">
-                <h1 class="font-display text-lg font-semibold text-ink-900">{{ title }}</h1>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-3 group">
+            <header class="glass-panel m-2 flex items-center justify-between gap-2 px-3 py-3 sm:m-3 sm:px-6 sm:py-3.5">
+                <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <button
+                        type="button"
+                        class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink-600 hover:bg-ink-100 md:hidden"
+                        @click="mobileOpen = true"
+                        aria-label="Buka menu"
+                    >
+                        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+                        </svg>
+                    </button>
+                    <h1 class="truncate font-display text-base font-semibold text-ink-900 sm:text-lg">{{ title }}</h1>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <div class="flex items-center gap-2 group sm:gap-3">
                         <div class="grid h-9 w-9 place-items-center rounded-full bg-forest-700 text-xs font-semibold text-white shadow-sm transition group-hover:bg-forest-600 overflow-hidden shrink-0">
                             <img
                                 v-if="page.props.auth?.user?.avatar && !avatarFailed"
@@ -121,7 +163,7 @@ const current = page.props.activeNav ?? '';
                                 {{ (page.props.auth?.user?.name ?? 'SA').split(' ').map(w => w[0]).slice(0,2).join('') }}
                             </span>
                         </div>
-                        <span class="flex flex-col">
+                        <span class="hidden flex-col sm:flex">
                             <span class="text-sm font-medium text-ink-700 transition">
                                 {{ page.props.auth?.user?.name ?? 'Super Admin' }}
                             </span>
@@ -139,7 +181,7 @@ const current = page.props.activeNav ?? '';
                 </div>
             </header>
 
-            <main class="flex-1 p-6">
+            <main class="flex-1 p-4 sm:p-6">
                 <div v-if="page.props.flash?.error" class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 shadow-sm">
                     {{ page.props.flash.error }}
                 </div>

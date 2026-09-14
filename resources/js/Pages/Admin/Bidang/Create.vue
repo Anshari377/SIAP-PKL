@@ -32,24 +32,24 @@ const submitForm = () => {
 </script>
 
 <template>
-    <Head title="Buat Lowongan" />
-    <AppLayout title="Buat Lowongan PKL">
+    <Head title="Buat Bidang" />
+    <AppLayout title="Buat Bidang PKL">
         <div class="mx-auto max-w-3xl">
             <!-- Success Alert -->
             <div v-if="showSuccess" class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 shadow-sm">
-                Lowongan berhasil dibuat! (Demo — data belum tersimpan)
+                Bidang berhasil dibuat! (Demo — data belum tersimpan)
             </div>
 
             <div class="glass-panel p-6 sm:p-8">
                 <div class="mb-8">
-                    <h2 class="font-display text-2xl font-bold text-ink-900">Buat Lowongan Baru</h2>
-                    <p class="mt-1 text-sm text-ink-500">Isi informasi lowongan praktik kerja lapangan yang akan dibuka.</p>
+                    <h2 class="font-display text-2xl font-bold text-ink-900">Buat Bidang Baru</h2>
+                    <p class="mt-1 text-sm text-ink-500">Isi informasi bidang praktik kerja lapangan yang akan dibuka.</p>
                 </div>
 
                 <form @submit.prevent="submitForm" class="space-y-6">
                     <!-- Nama Bidang -->
                     <div>
-                        <label class="field-label">Nama Bidang / Lowongan</label>
+                        <label class="field-label">Nama Bidang</label>
                         <input v-model="form.nama" type="text" required placeholder="Contoh: Aplikasi dan Layanan E-Government" class="field-input" />
                     </div>
 
@@ -121,8 +121,8 @@ const submitForm = () => {
 
                     <!-- Action Buttons -->
                     <div class="flex items-center justify-end gap-3 pt-4 border-t border-ink-300/30">
-                        <Link :href="route('admin.lowongan.index')" class="btn-secondary">Batal</Link>
-                        <button type="submit" class="btn-primary">Simpan Lowongan</button>
+                        <Link :href="route('admin.bidang.index')" class="btn-secondary">Batal</Link>
+                        <button type="submit" class="btn-primary">Simpan Bidang</button>
                     </div>
                 </form>
             </div>

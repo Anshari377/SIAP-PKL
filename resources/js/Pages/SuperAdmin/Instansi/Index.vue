@@ -82,12 +82,12 @@ const submitForm = () => {
         </div>
 
         <!-- Header Action -->
-        <div class="mb-6 flex items-center justify-between">
+        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="font-display text-xl font-bold text-ink-900">Daftar Instansi PKL</h2>
                 <p class="mt-1 text-sm text-ink-500">Kelola seluruh instansi mitra PKL yang terdaftar di sistem.</p>
             </div>
-            <button @click="openModal" class="btn-primary">
+            <button @click="openModal" class="btn-primary w-full sm:w-auto shrink-0">
                 <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>

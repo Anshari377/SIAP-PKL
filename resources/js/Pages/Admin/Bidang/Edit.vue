@@ -37,24 +37,24 @@ const submitForm = () => {
 </script>
 
 <template>
-    <Head title="Edit Lowongan" />
-    <AppLayout title="Edit Lowongan PKL">
+    <Head title="Edit Bidang" />
+    <AppLayout title="Edit Bidang PKL">
         <div class="mx-auto max-w-3xl">
             <!-- Success Alert -->
             <div v-if="showSuccess" class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 shadow-sm">
-                Lowongan berhasil diperbarui! (Demo — data belum tersimpan)
+                Bidang berhasil diperbarui! (Demo — data belum tersimpan)
             </div>
 
             <div class="glass-panel p-6 sm:p-8">
                 <div class="mb-8">
-                    <h2 class="font-display text-2xl font-bold text-ink-900">Edit Lowongan</h2>
-                    <p class="mt-1 text-sm text-ink-500">Perbarui informasi lowongan praktik kerja lapangan.</p>
+                    <h2 class="font-display text-2xl font-bold text-ink-900">Edit Bidang</h2>
+                    <p class="mt-1 text-sm text-ink-500">Perbarui informasi bidang praktik kerja lapangan.</p>
                 </div>
 
                 <form @submit.prevent="submitForm" class="space-y-6">
                     <!-- Nama Bidang -->
                     <div>
-                        <label class="field-label">Nama Bidang / Lowongan</label>
+                        <label class="field-label">Nama Bidang</label>
                         <input v-model="form.nama" type="text" required class="field-input" />
                     </div>
 
@@ -126,8 +126,8 @@ const submitForm = () => {
 
                     <!-- Action Buttons -->
                     <div class="flex items-center justify-end gap-3 pt-4 border-t border-ink-300/30">
-                        <Link :href="route('admin.lowongan.index')" class="btn-secondary">Batal</Link>
-                        <button type="submit" class="btn-primary">Perbarui Lowongan</button>
+                        <Link :href="route('admin.bidang.index')" class="btn-secondary">Batal</Link>
+                        <button type="submit" class="btn-primary">Perbarui Bidang</button>
                     </div>
                 </form>
             </div>
