@@ -1,34 +1,21 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate, getTimelineSteps } from '@/utils/statusLabel';
 
-const pengajuan = ref({
-    id: 1,
-    nama: 'Ahmad Rizky Pratama',
-    email: 'ahmad.rizky@student.unmul.ac.id',
-    instansi: 'Universitas Mulawarman',
-    jurusan: 'Teknik Informatika',
-    nim: '2023010045',
-    no_telp: '081234567890',
-    bidang: 'Aplikasi dan Layanan E-Government',
-    posisi: 'Web Developer',
-    tanggal: '2026-09-05',
-    status: 'pending',
-    motivation: 'Saya ingin mempelajari pengembangan aplikasi pemerintah secara langsung dan berkontribusi pada layanan publik digital di Kalimantan Timur.',
-    document_path: 'Surat_Pengantar_Proposal_Ahmad_Rizky.pdf',
-    document_label: 'Surat Pengantar / Proposal',
+const props = defineProps({
+    pengajuan: { type: Object, required: true },
 });
 
+const pengajuan = computed(() => props.pengajuan);
+const ketua = computed(() => pengajuan.value.members?.[0] ?? {});
+const anggota = computed(() => pengajuan.value.members ?? []);
+const documentName = computed(() => pengajuan.value.document_path?.split('/').pop() ?? 'Berkas belum tersedia');
 const steps = computed(() => getTimelineSteps(pengajuan.value));
 
-const handleAccept = () => {
-    pengajuan.value.status = 'accepted';
-};
-
-const handleReject = () => {
-    pengajuan.value.status = 'rejected';
+const handleStatus = (status) => {
+    router.patch(route('admin.pengajuan.status', pengajuan.value.id), { status });
 };
 </script>
 
@@ -59,27 +46,27 @@ const handleReject = () => {
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                         <div>
                             <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Nama Lengkap</p>
-                            <p class="mt-1 font-semibold text-ink-900">{{ pengajuan.nama }}</p>
+                            <p class="mt-1 font-semibold text-ink-900">{{ pengajuan.user?.name ?? '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Email</p>
-                            <p class="mt-1 text-ink-800">{{ pengajuan.email }}</p>
+                            <p class="mt-1 text-ink-800">{{ pengajuan.user?.email ?? '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Asal Instansi</p>
-                            <p class="mt-1 text-ink-800">{{ pengajuan.instansi }}</p>
+                            <p class="mt-1 text-ink-800">{{ pengajuan.user?.agency?.name ?? '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Jurusan</p>
-                            <p class="mt-1 text-ink-800">{{ pengajuan.jurusan }}</p>
+                            <p class="mt-1 text-ink-800">{{ ketua.major ?? '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">NIM</p>
-                            <p class="mt-1 text-ink-800">{{ pengajuan.nim }}</p>
+                            <p class="mt-1 text-ink-800">{{ ketua.nim ?? '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">No. Telepon</p>
-                            <p class="mt-1 text-ink-800">{{ pengajuan.no_telp }}</p>
+                            <p class="mt-1 text-ink-800">{{ ketua.phone ?? '-' }}</p>
                         </div>
                     </div>
                 </div>
@@ -95,18 +82,25 @@ const handleReject = () => {
                             </svg>
                         </div>
                         <div>
-                            <p class="font-semibold text-ink-900">{{ pengajuan.posisi }}</p>
-                            <p class="text-sm text-ink-500">{{ pengajuan.bidang }}</p>
+                            <p class="font-semibold text-ink-900">{{ pengajuan.division?.nama ?? '-' }}</p>
+                            <p class="text-sm text-ink-500">{{ pengajuan.division?.instansi ?? '-' }}</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Motivation -->
+                <!-- Period and members -->
                 <div class="glass-panel p-6">
-                    <h3 class="mb-4 font-display text-base font-bold text-ink-900">Surat Motivasi</h3>
-                    <p class="text-sm text-ink-800 leading-relaxed italic">
-                        "{{ pengajuan.motivation }}"
-                    </p>
+                    <h3 class="mb-4 font-display text-base font-bold text-ink-900">Periode PKL</h3>
+                    <p class="text-sm text-ink-800">{{ formatDate(pengajuan.start_date) }} - {{ formatDate(pengajuan.end_date) }}</p>
+                    <div v-if="anggota.length" class="mt-5 border-t border-ink-300/30 pt-4">
+                        <h3 class="mb-3 font-display text-base font-bold text-ink-900">Anggota Pengajuan</h3>
+                        <div class="space-y-2">
+                            <div v-for="member in anggota" :key="member.id" class="rounded-lg border border-ink-300/40 bg-white/50 p-3">
+                                <p class="font-medium text-ink-900">{{ member.name }}</p>
+                                <p class="text-xs text-ink-500">{{ member.major }} · {{ member.school }} · {{ member.phone }}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Berkas Upload (satu file gabungan) -->
@@ -119,10 +113,11 @@ const handleReject = () => {
                             </svg>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-medium text-ink-900">{{ pengajuan.document_path }}</p>
-                            <p class="text-xs text-ink-500">{{ pengajuan.document_label }}</p>
+                            <p class="truncate text-sm font-medium text-ink-900">{{ documentName }}</p>
+                            <p class="text-xs text-ink-500">Dokumen PDF pengajuan PKL</p>
                         </div>
-                        <button class="text-xs font-semibold text-forest-700 hover:underline" @click="alert('Demo: buka file ' + pengajuan.document_path)">Lihat</button>
+                        <a v-if="pengajuan.document_path" :href="route('admin.pengajuan.document', pengajuan.id)" target="_blank" class="text-xs font-semibold text-forest-700 hover:underline">Lihat</a>
+                        <span v-else class="text-xs text-ink-400">Tidak tersedia</span>
                     </div>
                 </div>
             </div>
@@ -136,10 +131,10 @@ const handleReject = () => {
                     </h3>
                     <p class="text-sm text-ink-500">Tinjau pengajuan ini dan tentukan keputusan.</p>
                     <div class="space-y-2">
-                        <button v-if="pengajuan.status === 'pending'" @click="handleAccept" class="btn-success w-full text-center text-sm">
+                        <button v-if="pengajuan.status === 'pending'" @click="handleStatus('accepted')" class="btn-success w-full text-center text-sm">
                             Terima Pengajuan
                         </button>
-                        <button v-if="pengajuan.status === 'pending'" @click="handleReject" class="btn-danger w-full text-center text-sm">
+                        <button v-if="pengajuan.status === 'pending'" @click="handleStatus('rejected')" class="btn-danger w-full text-center text-sm">
                             Tolak Pengajuan
                         </button>
                         <div v-if="pengajuan.status !== 'pending'" class="rounded-lg bg-ink-100 p-3 text-center text-sm font-medium text-ink-500">

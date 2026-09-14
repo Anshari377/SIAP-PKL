@@ -4,28 +4,16 @@ import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
 
+const props = defineProps({
+    peserta: { type: Array, default: () => [] },
+    stats: { type: Object, default: () => ({}) },
+});
+const stats = computed(() => props.stats);
 const search = ref('');
 const statusFilter = ref('');
 
-const stats = ref({
-    total_aktif: 23,
-    selesai: 8,
-    baru_bulan_ini: 5,
-});
-
-const pesertaList = ref([
-    { id: 1, nama: 'Siti Nurhaliza', nim: '2023010012', instansi: 'Universitas Mulawarman', bidang: 'Infrastruktur Jaringan', posisi: 'Network Admin', tanggal_mulai: '2026-07-01', status: 'accepted' },
-    { id: 2, nama: 'Dedi Kurniawan', nim: '2023010033', instansi: 'Universitas Mulawarman', bidang: 'Infrastruktur Jaringan', posisi: 'Tech Support', tanggal_mulai: '2026-07-01', status: 'accepted' },
-    { id: 3, nama: 'Bayu Firmansyah', nim: '2023010056', instansi: 'Universitas Mulawarman', bidang: 'Aplikasi E-Government', posisi: 'Mobile App Developer', tanggal_mulai: '2026-08-01', status: 'accepted' },
-    { id: 4, nama: 'Lestari Amalia', nim: '2023010078', instansi: 'Institut Teknologi Kalimantan', bidang: 'Aplikasi E-Government', posisi: 'Web Developer', tanggal_mulai: '2026-07-15', status: 'completed' },
-    { id: 5, nama: 'Fajar Nugroho', nim: '2023010091', instansi: 'UIN Sultan Aji Muhammad Sulaiman', bidang: 'Sekretariat', posisi: 'Admin Data', tanggal_mulai: '2026-08-01', status: 'accepted' },
-    { id: 6, nama: 'Maya Sari', nim: '2023010105', instansi: 'Universitas Mulawarman', bidang: 'Diseminasi Informasi', posisi: 'Content Creator', tanggal_mulai: '2026-07-15', status: 'completed' },
-    { id: 7, nama: 'Rizal Pratama', nim: '2023010118', instansi: 'Institut Teknologi Kalimantan', bidang: 'Aplikasi E-Government', posisi: 'UI/UX Designer', tanggal_mulai: '2026-08-15', status: 'accepted' },
-    { id: 8, nama: 'Diana Putri', nim: '2023010129', instansi: 'UIN Sultan Aji Muhammad Sulaiman', bidang: 'Aplikasi E-Government', posisi: 'Database Administrator', tanggal_mulai: '2026-08-01', status: 'accepted' },
-]);
-
 const filteredPeserta = computed(() => {
-    return pesertaList.value.filter((item) => {
+    return props.peserta.filter((item) => {
         const matchSearch = !search.value || item.nama.toLowerCase().includes(search.value.toLowerCase());
         const matchStatus = !statusFilter.value || item.status === statusFilter.value;
         return matchSearch && matchStatus;
@@ -56,7 +44,7 @@ const filteredPeserta = computed(() => {
             <div class="glass-card p-5">
                 <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Baru Bulan Ini</p>
                 <p class="mt-2 font-display text-3xl font-bold text-gold-500">{{ stats.baru_bulan_ini }}</p>
-                <p class="mt-1 text-xs text-ink-500">Mendaftar Agustus 2026</p>
+                        <p class="mt-1 text-xs text-ink-500">Pengajuan pada bulan berjalan</p>
             </div>
         </div>
 

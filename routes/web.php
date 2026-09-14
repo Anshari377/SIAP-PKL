@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Admin\AdminBidangController;
+use App\Http\Controllers\Admin\AdminApplicationController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KelompokController;
 use App\Http\Controllers\LowonganController;
@@ -46,17 +48,22 @@ Route::middleware('auth')->group(function () {
 
     // Admin Portal Routes
     Route::prefix('admin')->name('admin.')->middleware('ensure.agency_admin')->group(function () {
-        Route::get('/dashboard', fn () => \Inertia\Inertia::render('Admin/Dashboard', ['activeNav' => 'admin.dashboard']))->name('dashboard');
+        Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
 
         Route::get('/bidang', [AdminBidangController::class, 'index'])->name('bidang.index');
         Route::get('/bidang/create', [AdminBidangController::class, 'create'])->name('bidang.create');
+        Route::post('/bidang', [AdminBidangController::class, 'store'])->name('bidang.store');
         Route::get('/bidang/{bidang}', [AdminBidangController::class, 'show'])->name('bidang.show');
         Route::get('/bidang/{bidang}/edit', [AdminBidangController::class, 'edit'])->name('bidang.edit');
+        Route::put('/bidang/{bidang}', [AdminBidangController::class, 'update'])->name('bidang.update');
+        Route::delete('/bidang/{bidang}', [AdminBidangController::class, 'destroy'])->name('bidang.destroy');
 
-        Route::get('/pengajuan', fn () => \Inertia\Inertia::render('Admin/Pengajuan/Index', ['activeNav' => 'admin.pengajuan']))->name('pengajuan.index');
-        Route::get('/pengajuan/{pengajuan}', fn () => \Inertia\Inertia::render('Admin/Pengajuan/Show', ['activeNav' => 'admin.pengajuan']))->name('pengajuan.show');
+        Route::get('/pengajuan', [AdminApplicationController::class, 'index'])->name('pengajuan.index');
+        Route::get('/pengajuan/{pengajuan}/document', [AdminApplicationController::class, 'document'])->name('pengajuan.document');
+        Route::get('/pengajuan/{pengajuan}', [AdminApplicationController::class, 'show'])->name('pengajuan.show');
+        Route::patch('/pengajuan/{pengajuan}/status', [AdminApplicationController::class, 'updateStatus'])->name('pengajuan.status');
 
-        Route::get('/peserta', fn () => \Inertia\Inertia::render('Admin/Peserta/Index', ['activeNav' => 'admin.peserta']))->name('peserta.index');
+        Route::get('/peserta', [AdminApplicationController::class, 'participants'])->name('peserta.index');
 
         Route::get('/profile', fn () => \Inertia\Inertia::render('Admin/Profile/Edit', ['activeNav' => 'admin.profile']))->name('profile.edit');
     });

@@ -1,24 +1,21 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { ref, reactive } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { reactive } from 'vue';
 
+const props = defineProps({ bidang: { type: Object, required: true } });
 const form = reactive({
-    nama: 'Aplikasi dan Layanan E-Government',
-    instansi: 'Diskominfo Kaltim',
-    deskripsi: 'Bidang ini menangani pengembangan dan pemeliharaan aplikasi layanan pemerintah berbasis elektronik (e-Government) untuk memudahkan akses layanan publik di Kalimantan Timur.',
-    kualifikasi: 'Mahasiswa/Siswa jurusan Teknik Informatika, Sistem Informasi, atau bidang terkait. Menguasai dasar pemrograman web (HTML, CSS, JavaScript).',
-    kuota_total: 8,
-    status: 'aktif',
-    posisi: [
-        { id: 1, nama: 'Web Developer', kuota: 3, jurusan: 'Teknik Informatika, Sistem Informasi' },
-        { id: 2, nama: 'Mobile App Developer', kuota: 2, jurusan: 'Teknik Informatika' },
-        { id: 3, nama: 'UI/UX Designer', kuota: 1, jurusan: 'Desain Komunikasi Visual, Teknik Informatika' },
-        { id: 4, nama: 'Database Administrator', kuota: 2, jurusan: 'Teknik Informatika, Sistem Informasi' },
-    ],
+    nama: props.bidang.nama,
+    instansi: props.bidang.instansi,
+    deskripsi: props.bidang.deskripsi,
+    kuota_total: props.bidang.quota,
+    posisi: (props.bidang.positions ?? []).map((position) => ({
+        id: position.id,
+        nama: position.nama,
+        kuota: position.kuota,
+        jurusan: (position.jurusan ?? []).join(', '),
+    })),
 });
-
-const showSuccess = ref(false);
 
 const addPosisi = () => {
     form.posisi.push({ id: Date.now(), nama: '', kuota: '', jurusan: '' });
@@ -31,8 +28,7 @@ const removePosisi = (index) => {
 };
 
 const submitForm = () => {
-    showSuccess.value = true;
-    setTimeout(() => { showSuccess.value = false; }, 3000);
+    router.put(route('admin.bidang.update', props.bidang.id), form);
 };
 </script>
 
@@ -40,11 +36,6 @@ const submitForm = () => {
     <Head title="Edit Bidang" />
     <AppLayout title="Edit Bidang PKL">
         <div class="mx-auto max-w-3xl">
-            <!-- Success Alert -->
-            <div v-if="showSuccess" class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 shadow-sm">
-                Bidang berhasil diperbarui! (Demo — data belum tersimpan)
-            </div>
-
             <div class="glass-panel p-6 sm:p-8">
                 <div class="mb-8">
                     <h2 class="font-display text-2xl font-bold text-ink-900">Edit Bidang</h2>

@@ -1,30 +1,27 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
 
-const stats = ref({
-    total_bidang: 6,
-    pengajuan_baru: 14,
-    menunggu_verifikasi: 8,
-    peserta_aktif: 23,
+const props = defineProps({
+    stats: { type: Object, default: () => ({}) },
+    pengajuanTerbaru: { type: Array, default: () => [] },
+    bidangAktif: { type: Array, default: () => [] },
 });
 
-const pengajuanTerbaru = ref([
-    { id: 1, nama: 'Ahmad Rizky Pratama', bidang: 'Aplikasi E-Government', posisi: 'Web Developer', tanggal: '05 Sep 2026', status: 'pending' },
-    { id: 2, nama: 'Siti Nurhaliza', bidang: 'Infrastruktur Jaringan', posisi: 'Network Admin', tanggal: '04 Sep 2026', status: 'accepted' },
-    { id: 3, nama: 'Muhammad Fadil', bidang: 'Sekretariat', posisi: 'Admin Data', tanggal: '03 Sep 2026', status: 'pending' },
-    { id: 4, nama: 'Rina Wati', bidang: 'Aplikasi E-Government', posisi: 'UI/UX Designer', tanggal: '02 Sep 2026', status: 'rejected' },
-    { id: 5, nama: 'Dedi Kurniawan', bidang: 'Infrastruktur Jaringan', posisi: 'Tech Support', tanggal: '01 Sep 2026', status: 'accepted' },
-]);
-
-const bidangAktif = ref([
-    { id: 1, nama: 'Aplikasi dan Layanan E-Government', kuota: 8, terisi: 5 },
-    { id: 2, nama: 'Infrastruktur Jaringan dan Server', kuota: 6, terisi: 4 },
-    { id: 3, nama: 'Sekretariat dan Tata Usaha', kuota: 4, terisi: 3 },
-    { id: 4, nama: 'Diseminasi Informasi Publik', kuota: 5, terisi: 2 },
-]);
+const stats = computed(() => props.stats);
+const pengajuanTerbaru = computed(() => props.pengajuanTerbaru.map((item) => ({
+    ...item,
+    nama: item.user?.name ?? '-',
+    bidang: item.division?.nama ?? '-',
+    tanggal: item.created_at,
+})));
+const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
+    ...item,
+    nama: item.nama,
+    kuota: item.quota,
+})));
 </script>
 
 <template>

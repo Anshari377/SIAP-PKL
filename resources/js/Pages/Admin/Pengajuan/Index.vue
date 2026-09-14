@@ -1,25 +1,23 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
 
+const props = defineProps({ pengajuan: { type: Array, default: () => [] } });
 const search = ref('');
 const statusFilter = ref('');
 
-const pengajuanList = ref([
-    { id: 1, nama: 'Ahmad Rizky Pratama', email: 'ahmad.rizky@student.unmul.ac.id', instansi: 'Universitas Mulawarman', bidang: 'Aplikasi E-Government', posisi: 'Web Developer', tanggal: '2026-09-05', status: 'pending' },
-    { id: 2, nama: 'Siti Nurhaliza', email: 'siti.nurhaliza@student.unmul.ac.id', instansi: 'Universitas Mulawarman', bidang: 'Infrastruktur Jaringan', posisi: 'Network Admin', tanggal: '2026-09-04', status: 'accepted' },
-    { id: 3, nama: 'Muhammad Fadil', email: 'm.fadil@student.uin-sgu.ac.id', instansi: 'UIN Sultan Aji Muhammad Sulaiman', bidang: 'Sekretariat', posisi: 'Admin Data', tanggal: '2026-09-03', status: 'pending' },
-    { id: 4, nama: 'Rina Wati', email: 'rina.wati@student.itk.ac.id', instansi: 'Institut Teknologi Kalimantan', bidang: 'Aplikasi E-Government', posisi: 'UI/UX Designer', tanggal: '2026-09-02', status: 'rejected' },
-    { id: 5, nama: 'Dedi Kurniawan', email: 'dedi.k@student.unmul.ac.id', instansi: 'Universitas Mulawarman', bidang: 'Infrastruktur Jaringan', posisi: 'Tech Support', tanggal: '2026-09-01', status: 'accepted' },
-    { id: 6, nama: 'Putri Ayu Lestari', email: 'putri.ayu@student.itk.ac.id', instansi: 'Institut Teknologi Kalimantan', bidang: 'Diseminasi Informasi', posisi: 'Content Creator', tanggal: '2026-08-30', status: 'pending' },
-    { id: 7, nama: 'Bayu Firmansyah', email: 'bayu.f@student.unmul.ac.id', instansi: 'Universitas Mulawarman', bidang: 'Aplikasi E-Government', posisi: 'Mobile App Developer', tanggal: '2026-08-29', status: 'accepted' },
-    { id: 8, nama: 'Anisa Putri Ramadhani', email: 'anisa.pr@student.uin-sgu.ac.id', instansi: 'UIN Sultan Aji Muhammad Sulaiman', bidang: 'Sekretariat', posisi: 'Admin Data', tanggal: '2026-08-28', status: 'rejected' },
-]);
-
 const filteredPengajuan = computed(() => {
-    return pengajuanList.value.filter((item) => {
+    return props.pengajuan.map((item) => ({
+        ...item,
+        nama: item.user?.name ?? '-',
+        email: item.user?.email ?? '-',
+        instansi: item.user?.agency?.name ?? item.user?.instansi ?? '-',
+        bidang: item.division?.nama ?? '-',
+        posisi: item.position?.nama ?? '-',
+        tanggal: item.created_at,
+    })).filter((item) => {
         const matchSearch = !search.value || item.nama.toLowerCase().includes(search.value.toLowerCase());
         const matchStatus = !statusFilter.value || item.status === statusFilter.value;
         return matchSearch && matchStatus;
@@ -27,11 +25,11 @@ const filteredPengajuan = computed(() => {
 });
 
 const handleAccept = (item) => {
-    item.status = 'accepted';
+    router.patch(route('admin.pengajuan.status', item.id), { status: 'accepted' });
 };
 
 const handleReject = (item) => {
-    item.status = 'rejected';
+    router.patch(route('admin.pengajuan.status', item.id), { status: 'rejected' });
 };
 </script>
 

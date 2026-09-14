@@ -1,22 +1,14 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
+const props = defineProps({ divisions: { type: Array, default: () => [] } });
 const search = ref('');
 const bidang = ref('');
 
-const bidangList = ref([
-    { id: 1, nama: 'Aplikasi dan Layanan E-Government', instansi: 'Diskominfo Kaltim', kuota_total: 8, terisi_total: 5, status: 'aktif' },
-    { id: 2, nama: 'Infrastruktur Jaringan dan Server', instansi: 'Diskominfo Kaltim', kuota_total: 6, terisi_total: 4, status: 'aktif' },
-    { id: 3, nama: 'Sekretariat dan Tata Usaha', instansi: 'Diskominfo Kaltim', kuota_total: 4, terisi_total: 3, status: 'aktif' },
-    { id: 4, nama: 'Diseminasi Informasi Publik', instansi: 'Diskominfo Kaltim', kuota_total: 5, terisi_total: 2, status: 'aktif' },
-    { id: 5, nama: 'Pengelolaan Data dan Statistik', instansi: 'Diskominfo Kaltim', kuota_total: 3, terisi_total: 3, status: 'penuh' },
-    { id: 6, nama: 'Hubungan Masyarakat dan Media', instansi: 'Diskominfo Kaltim', kuota_total: 4, terisi_total: 0, status: 'nonaktif' },
-]);
-
 const filteredBidang = computed(() => {
-    return bidangList.value.filter((item) => {
+    return props.divisions.filter((item) => {
         const matchSearch = !search.value || item.nama.toLowerCase().includes(search.value.toLowerCase());
         const matchBidang = !bidang.value || item.nama === bidang.value;
         return matchSearch && matchBidang;
@@ -25,25 +17,27 @@ const filteredBidang = computed(() => {
 
 const statusBadge = (status) => {
     switch (status) {
-        case 'aktif': return 'badge-success';
-        case 'penuh': return 'badge-warning';
-        case 'nonaktif': return 'badge-danger';
+        case 'tersedia': return 'badge-success';
+        case 'menipis': return 'badge-warning';
+        case 'penuh':
+        case 'hampir-penuh': return 'badge-danger';
         default: return 'badge-info';
     }
 };
 
 const statusLabel = (status) => {
     switch (status) {
-        case 'aktif': return 'Aktif';
-        case 'penuh': return 'Penuh';
-        case 'nonaktif': return 'Nonaktif';
+        case 'tersedia': return 'Slot Tersedia';
+        case 'menipis': return 'Kuota Menipis';
+        case 'hampir-penuh': return 'Hampir Penuh';
+        case 'penuh': return 'Kuota Penuh';
         default: return status;
     }
 };
 
 const handleDelete = (item) => {
     if (confirm(`Hapus bidang "${item.nama}"?`)) {
-        bidangList.value = bidangList.value.filter((b) => b.id !== item.id);
+        router.delete(route('admin.bidang.destroy', item.id));
     }
 };
 </script>

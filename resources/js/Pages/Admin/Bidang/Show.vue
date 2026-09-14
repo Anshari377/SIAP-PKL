@@ -1,29 +1,20 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed } from 'vue';
 
-const bidang = ref({
-    id: 1,
-    nama: 'Aplikasi dan Layanan E-Government',
-    instansi: 'Diskominfo Kaltim',
-    deskripsi: 'Bidang ini menangani pengembangan dan pemeliharaan aplikasi layanan pemerintah berbasis elektronik (e-Government) untuk memudahkan akses layanan publik di Kalimantan Timur.',
-    kualifikasi: 'Mahasiswa/Siswa jurusan Teknik Informatika, Sistem Informasi, atau bidang terkait. Menguasai dasar pemrograman web (HTML, CSS, JavaScript). Berhasil menyelesaikan proses seleksi.',
-    kuota_total: 8,
-    terisi_total: 5,
-    status: 'aktif',
-    created_at: '2026-08-01',
-    posisi: [
-        { id: 1, nama: 'Web Developer', kuota: 3, terisi: 2, jurusan: ['Teknik Informatika', 'Sistem Informasi'] },
-        { id: 2, nama: 'Mobile App Developer', kuota: 2, terisi: 1, jurusan: ['Teknik Informatika'] },
-        { id: 3, nama: 'UI/UX Designer', kuota: 1, terisi: 1, jurusan: ['Desain Komunikasi Visual', 'Teknik Informatika'] },
-        { id: 4, nama: 'Database Administrator', kuota: 2, terisi: 1, jurusan: ['Teknik Informatika', 'Sistem Informasi'] },
-    ],
+const props = defineProps({
+    bidang: { type: Object, required: true },
 });
 
-const handleToggleStatus = () => {
-    bidang.value.status = bidang.value.status === 'aktif' ? 'nonaktif' : 'aktif';
-};
+const bidang = computed(() => props.bidang);
+const statusLabel = computed(() => ({
+    tersedia: 'Slot Tersedia',
+    menipis: 'Kuota Menipis',
+    'hampir-penuh': 'Hampir Penuh',
+    penuh: 'Kuota Penuh',
+}[bidang.value.status] ?? bidang.value.status));
+const statusClass = computed(() => ['penuh', 'hampir-penuh'].includes(bidang.value.status) ? 'badge-danger' : bidang.value.status === 'menipis' ? 'badge-warning' : 'badge-success');
 </script>
 
 <template>
@@ -40,10 +31,10 @@ const handleToggleStatus = () => {
                             <p class="mt-1 text-sm text-ink-500">{{ bidang.instansi }} · Dibuat {{ bidang.created_at }}</p>
                         </div>
                         <span
-                            :class="bidang.status === 'aktif' ? 'badge-success' : 'badge-danger'"
+                            :class="statusClass"
                             class="badge"
                         >
-                            {{ bidang.status === 'aktif' ? 'Aktif' : 'Nonaktif' }}
+                            {{ statusLabel }}
                         </span>
                     </div>
 
@@ -54,13 +45,32 @@ const handleToggleStatus = () => {
                         </div>
                         <div class="border-t border-ink-300/30 pt-4">
                             <h3 class="text-xs font-medium text-ink-500 uppercase tracking-wider mb-2">Kualifikasi</h3>
-                            <p class="text-sm text-ink-800 leading-relaxed">{{ bidang.kualifikasi }}</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span v-for="jurusan in [...new Set((bidang.positions ?? []).flatMap((position) => position.jurusan ?? []))]" :key="jurusan" class="badge badge-info">
+                                    {{ jurusan }}
+                                </span>
+                                <span v-if="!(bidang.positions ?? []).some((position) => position.jurusan?.length)" class="text-sm text-ink-500">
+                                    Belum ada kualifikasi khusus.
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Posisi Table -->
-                
+                <div class="glass-panel p-6">
+                    <h3 class="mb-4 font-display text-base font-bold text-ink-900">Posisi yang Dibuka</h3>
+                    <div v-if="bidang.positions?.length" class="space-y-3">
+                        <div v-for="position in bidang.positions" :key="position.id" class="flex items-center justify-between rounded-xl border border-ink-300/40 bg-white/50 p-4">
+                            <div>
+                                <p class="font-semibold text-ink-900">{{ position.nama }}</p>
+                                <p class="text-xs text-ink-500">{{ (position.jurusan ?? []).join(', ') || 'Semua jurusan' }}</p>
+                            </div>
+                            <span class="badge badge-info">Kuota {{ position.terisi }}/{{ position.kuota }}</span>
+                        </div>
+                    </div>
+                    <p v-else class="text-sm text-ink-500">Belum ada posisi.</p>
+                </div>
             </div>
 
             <!-- Right: Sidebar Card -->
@@ -87,9 +97,6 @@ const handleToggleStatus = () => {
                         <Link :href="route('admin.bidang.edit', bidang.id)" class="btn-primary w-full text-center text-sm">
                             Edit Bidang
                         </Link>
-                        <button @click="handleToggleStatus" class="btn-secondary w-full text-sm">
-                            {{ bidang.status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }} Bidang
-                        </button>
                     </div>
                 </div>
             </div>

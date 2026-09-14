@@ -105,6 +105,14 @@ class PengajuanPklController extends Controller
             'document_path' => $documentPath,
         ]);
 
+        $application->members()->create([
+            'name' => $data['ketua']['name'],
+            'nim' => $data['ketua']['nim'] ?? null,
+            'school' => $data['ketua']['school'],
+            'major' => $data['ketua']['major'],
+            'phone' => $data['ketua']['phone'],
+        ]);
+
         foreach ($data['members'] ?? [] as $member) {
             $application->members()->create([
                 'name' => $member['name'],

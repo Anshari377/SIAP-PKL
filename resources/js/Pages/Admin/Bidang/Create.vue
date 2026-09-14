@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, reactive } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { reactive } from 'vue';
 
 const form = reactive({
     nama: '',
@@ -12,8 +12,6 @@ const form = reactive({
     status: 'aktif',
     posisi: [{ nama: '', kuota: '', jurusan: '' }],
 });
-
-const showSuccess = ref(false);
 
 const addPosisi = () => {
     form.posisi.push({ nama: '', kuota: '', jurusan: '' });
@@ -26,8 +24,7 @@ const removePosisi = (index) => {
 };
 
 const submitForm = () => {
-    showSuccess.value = true;
-    setTimeout(() => { showSuccess.value = false; }, 3000);
+    useForm(form).post(route('admin.bidang.store'));
 };
 </script>
 
@@ -36,10 +33,6 @@ const submitForm = () => {
     <AppLayout title="Buat Bidang PKL">
         <div class="mx-auto max-w-3xl">
             <!-- Success Alert -->
-            <div v-if="showSuccess" class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 shadow-sm">
-                Bidang berhasil dibuat! (Demo — data belum tersimpan)
-            </div>
-
             <div class="glass-panel p-6 sm:p-8">
                 <div class="mb-8">
                     <h2 class="font-display text-2xl font-bold text-ink-900">Buat Bidang Baru</h2>
