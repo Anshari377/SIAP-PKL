@@ -60,38 +60,7 @@ const handleToggleStatus = () => {
                 </div>
 
                 <!-- Posisi Table -->
-                <div class="glass-panel p-6">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h3 class="font-display text-base font-bold text-ink-900">Daftar Posisi</h3>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full min-w-[560px] text-left text-sm">
-                            <thead class="border-b border-ink-300/35 text-xs uppercase tracking-wider text-ink-500">
-                                <tr>
-                                    <th class="px-4 py-3">No</th>
-                                    <th class="px-4 py-3">Nama Posisi</th>
-                                    <th class="px-4 py-3">Kuota</th>
-                                    <th class="px-4 py-3">Terisi</th>
-                                    <th class="px-4 py-3">Jurusan</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-ink-300/20">
-                                <tr v-for="(pos, index) in bidang.posisi" :key="pos.id" class="transition hover:bg-forest-50/60">
-                                    <td class="px-4 py-3.5 text-ink-500">{{ index + 1 }}</td>
-                                    <td class="px-4 py-3.5 font-semibold text-ink-900">{{ pos.nama }}</td>
-                                    <td class="px-4 py-3.5 text-ink-700">{{ pos.kuota }}</td>
-                                    <td class="px-4 py-3.5 text-ink-700">{{ pos.terisi }}</td>
-                                    <td class="px-4 py-3.5">
-                                        <div class="flex flex-wrap gap-1">
-                                            <span v-for="j in pos.jurusan" :key="j" class="badge badge-info text-[10px]">{{ j }}</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- Right: Sidebar Card -->
