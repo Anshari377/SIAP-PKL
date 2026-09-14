@@ -20,6 +20,15 @@ const statusClass = computed(() => ['penuh', 'hampir-penuh'].includes(bidang.val
 <template>
     <Head title="Detail Bidang" />
     <AppLayout title="Detail Bidang PKL">
+        <div class="mb-4">
+            <Link :href="route('admin.bidang.index')" class="inline-flex items-center gap-1 text-sm font-medium text-forest-700 hover:underline">
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                </svg>
+                Kembali ke Daftar Bidang
+            </Link>
+        </div>
+
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Left: Detail Info -->
             <div class="lg:col-span-2 space-y-6">
