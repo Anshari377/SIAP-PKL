@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -19,7 +19,7 @@ const statusClass = computed(() => ['penuh', 'hampir-penuh'].includes(bidang.val
 
 <template>
     <Head title="Detail Bidang" />
-    <AppLayout title="Detail Bidang PKL">
+    <AdminLayout title="Detail Bidang PKL">
         <div class="mb-4">
             <Link :href="route('admin.bidang.index')" class="inline-flex items-center gap-1 text-sm font-medium text-forest-700 hover:underline">
                 <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -53,32 +53,17 @@ const statusClass = computed(() => ['penuh', 'hampir-penuh'].includes(bidang.val
                             <p class="text-sm text-ink-800 leading-relaxed">{{ bidang.deskripsi }}</p>
                         </div>
                         <div class="border-t border-ink-300/30 pt-4">
-                            <h3 class="text-xs font-medium text-ink-500 uppercase tracking-wider mb-2">Kualifikasi</h3>
+                            <h3 class="text-xs font-medium text-ink-500 uppercase tracking-wider mb-2">Jurusan yang Dicari</h3>
                             <div class="flex flex-wrap gap-2">
-                                <span v-for="jurusan in [...new Set((bidang.positions ?? []).flatMap((position) => position.jurusan ?? []))]" :key="jurusan" class="badge badge-info">
+                                <span v-for="jurusan in (bidang.jurusan ?? [])" :key="jurusan" class="badge badge-info">
                                     {{ jurusan }}
                                 </span>
-                                <span v-if="!(bidang.positions ?? []).some((position) => position.jurusan?.length)" class="text-sm text-ink-500">
-                                    Belum ada kualifikasi khusus.
+                                <span v-if="!(bidang.jurusan ?? []).length" class="text-sm text-ink-500">
+                                    Terbuka untuk semua jurusan.
                                 </span>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Posisi Table -->
-                <div class="glass-panel p-6">
-                    <h3 class="mb-4 font-display text-base font-bold text-ink-900">Posisi yang Dibuka</h3>
-                    <div v-if="bidang.positions?.length" class="space-y-3">
-                        <div v-for="position in bidang.positions" :key="position.id" class="flex items-center justify-between rounded-xl border border-ink-300/40 bg-white/50 p-4">
-                            <div>
-                                <p class="font-semibold text-ink-900">{{ position.nama }}</p>
-                                <p class="text-xs text-ink-500">{{ (position.jurusan ?? []).join(', ') || 'Semua jurusan' }}</p>
-                            </div>
-                            <span class="badge badge-info">Kuota {{ position.terisi }}/{{ position.kuota }}</span>
-                        </div>
-                    </div>
-                    <p v-else class="text-sm text-ink-500">Belum ada posisi.</p>
                 </div>
             </div>
 
@@ -110,5 +95,5 @@ const statusClass = computed(() => ['penuh', 'hampir-penuh'].includes(bidang.val
                 </div>
             </div>
         </div>
-    </AppLayout>
+    </AdminLayout>
 </template>

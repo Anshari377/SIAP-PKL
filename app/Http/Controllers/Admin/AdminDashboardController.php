@@ -14,10 +14,10 @@ class AdminDashboardController extends Controller
     {
         $divisionQuery = $request->user()->agency_id
             ? Division::where('agency_id', $request->user()->agency_id)
-            : Division::whereKey(0);
+            : Division::whereNull('agency_id');
         $applicationQuery = $request->user()->agency_id
             ? Application::whereHas('division', fn ($query) => $query->where('agency_id', $request->user()->agency_id))
-            : Application::whereKey(0);
+            : Application::whereHas('division', fn ($query) => $query->whereNull('agency_id'));
 
         return Inertia::render('Admin/Dashboard', [
             'activeNav' => 'admin.dashboard',

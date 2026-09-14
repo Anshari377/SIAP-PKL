@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
@@ -26,7 +26,7 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
 
 <template>
     <Head title="Admin Dashboard" />
-    <AppLayout title="Dashboard Admin">
+    <AdminLayout title="Dashboard Admin">
         <div class="mb-6">
             <h2 class="font-display text-xl font-bold text-ink-900">Selamat Datang, Admin Instansi</h2>
             <p class="mt-1 text-sm text-ink-500">Ringkasan aktivitas PKL Diskominfo Kaltim hari ini.</p>
@@ -135,5 +135,5 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
                 </ul>
             </div>
         </div>
-    </AppLayout>
+    </AdminLayout>
 </template>

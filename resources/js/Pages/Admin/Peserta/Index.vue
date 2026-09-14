@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
@@ -23,7 +23,7 @@ const filteredPeserta = computed(() => {
 
 <template>
     <Head title="Peserta PKL" />
-    <AppLayout title="Peserta PKL">
+    <AdminLayout title="Peserta PKL">
         <div class="mb-6">
             <h2 class="font-display text-xl font-bold text-ink-900">Peserta Praktik Kerja Lapangan</h2>
             <p class="mt-1 text-sm text-ink-500">Daftar peserta PKL yang sedang berlangsung atau telah selesai.</p>
@@ -109,5 +109,5 @@ const filteredPeserta = computed(() => {
                 </table>
             </div>
         </section>
-    </AppLayout>
+    </AdminLayout>
 </template>

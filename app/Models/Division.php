@@ -14,7 +14,11 @@ class Division extends Model
     use HasFactory;
 
     protected $fillable = [
-        'agency_id', 'slug', 'nama', 'kategori', 'instansi', 'deskripsi', 'quota',
+        'agency_id', 'slug', 'nama', 'kategori', 'instansi', 'deskripsi', 'quota', 'jurusan',
+    ];
+
+    protected $casts = [
+        'jurusan' => 'array',
     ];
 
     public function positions(): HasMany

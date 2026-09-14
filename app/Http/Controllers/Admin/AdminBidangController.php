@@ -15,7 +15,6 @@ class AdminBidangController extends Controller
     {
         $divisions = $this->withQuota(
             $this->queryFor(request()->user())
-                ->with('positions')
                 ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')])
                 ->latest()
                 ->get(),
@@ -37,7 +36,7 @@ class AdminBidangController extends Controller
         $data = $this->validated($request);
 
         DB::transaction(function () use ($request, $data) {
-            $division = $this->queryFor($request->user())->create([
+            $this->queryFor($request->user())->create([
                 'agency_id' => $request->user()->agency_id,
                 'slug' => Str::slug($data['nama']).'-'.Str::lower(Str::random(6)),
                 'nama' => $data['nama'],
@@ -45,9 +44,8 @@ class AdminBidangController extends Controller
                 'instansi' => $request->user()->agency?->name ?? $data['instansi'] ?? '',
                 'deskripsi' => $data['deskripsi'],
                 'quota' => $data['kuota_total'],
+                'jurusan' => $this->parseJurusan($data['jurusan'] ?? ''),
             ]);
-
-            $this->syncPositions($division, $data['posisi'] ?? []);
         });
 
         return to_route('admin.bidang.index')->with('success', 'Bidang berhasil dibuat.');
@@ -57,7 +55,6 @@ class AdminBidangController extends Controller
     {
         $division = $this->withQuota(
             $this->queryFor(request()->user())
-                ->with('positions')
                 ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')])
                 ->findOrFail($bidang),
         );
@@ -67,7 +64,7 @@ class AdminBidangController extends Controller
 
     public function edit($bidang)
     {
-        $division = $this->queryFor(request()->user())->with('positions')->findOrFail($bidang);
+        $division = $this->queryFor(request()->user())->findOrFail($bidang);
 
         return Inertia::render('Admin/Bidang/Edit', ['activeNav' => 'admin.bidang', 'bidang' => $division]);
     }
@@ -83,8 +80,8 @@ class AdminBidangController extends Controller
                 'kategori' => $data['kategori'] ?? $division->kategori,
                 'deskripsi' => $data['deskripsi'],
                 'quota' => $data['kuota_total'],
+                'jurusan' => $this->parseJurusan($data['jurusan'] ?? ''),
             ]);
-            $this->syncPositions($division, $data['posisi'] ?? []);
         });
 
         return to_route('admin.bidang.show', $division)->with('success', 'Bidang berhasil diperbarui.');
@@ -103,7 +100,7 @@ class AdminBidangController extends Controller
     {
         return $user->agency_id
             ? Division::query()->where('agency_id', $user->agency_id)
-            : Division::query()->whereKey(0);
+            : Division::query()->whereNull('agency_id');
     }
 
     private function withQuota($divisions)
@@ -135,33 +132,16 @@ class AdminBidangController extends Controller
             'instansi' => ['nullable', 'string', 'max:255'],
             'deskripsi' => ['required', 'string'],
             'kuota_total' => ['required', 'integer', 'min:1'],
-            'posisi' => ['nullable', 'array'],
-            'posisi.*.id' => ['nullable', 'integer'],
-            'posisi.*.nama' => ['required', 'string', 'max:255'],
-            'posisi.*.kuota' => ['required', 'integer', 'min:1'],
-            'posisi.*.jurusan' => ['nullable', 'string'],
+            'jurusan' => ['nullable', 'string'],
         ]);
     }
 
-    private function syncPositions(Division $division, array $positions): void
+    private function parseJurusan(?string $jurusan): array
     {
-        $ids = [];
-        foreach ($positions as $position) {
-            $record = $position['id'] ?? null
-                ? $division->positions()->findOrFail($position['id'])
-                : $division->positions()->make();
-            $record->fill([
-                'nama' => $position['nama'],
-                'deskripsi' => $position['nama'],
-                'kuota' => $position['kuota'],
-                'jurusan' => collect(explode(',', $position['jurusan'] ?? ''))->map(fn ($value) => trim($value))->filter()->values()->all(),
-            ]);
-            $record->save();
-            $ids[] = $record->id;
-        }
-
-        if ($ids) {
-            $division->positions()->whereNotIn('id', $ids)->where('terisi', 0)->delete();
-        }
+        return collect(explode(',', (string) $jurusan))
+            ->map(fn ($value) => trim($value))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

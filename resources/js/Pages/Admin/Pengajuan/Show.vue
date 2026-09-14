@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate, getTimelineSteps } from '@/utils/statusLabel';
@@ -21,7 +21,7 @@ const handleStatus = (status) => {
 
 <template>
     <Head title="Detail Pengajuan" />
-    <AppLayout title="Detail Pengajuan PKL">
+    <AdminLayout title="Detail Pengajuan PKL">
         <div class="mb-4">
             <Link :href="route('admin.pengajuan.index')" class="inline-flex items-center gap-1 text-sm font-medium text-forest-700 hover:underline">
                 <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
@@ -188,5 +188,5 @@ const handleStatus = (status) => {
                 </div>
             </div>
         </div>
-    </AppLayout>
+    </AdminLayout>
 </template>

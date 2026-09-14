@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
@@ -44,7 +44,7 @@ const handleDelete = (item) => {
 
 <template>
     <Head title="Kelola Bidang" />
-    <AppLayout title="Kelola Bidang PKL">
+    <AdminLayout title="Kelola Bidang PKL">
         <!-- Header Action -->
         <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -86,38 +86,46 @@ const handleDelete = (item) => {
 
         <!-- Bidang List -->
         <div class="grid gap-4">
-            <div v-for="item in filteredBidang" :key="item.id" class="glass-card flex flex-col gap-4 p-5 transition hover:border-forest-500/40 hover:shadow-md group sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex min-w-0 items-center gap-4">
-                    <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-forest-600/10 text-forest-700 group-hover:bg-forest-600 group-hover:text-white transition">
-                        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                            <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
-                        </svg>
+            <div v-for="item in filteredBidang" :key="item.id" class="glass-card flex flex-col gap-4 p-5 transition hover:border-forest-500/40 hover:shadow-md group">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex min-w-0 items-center gap-4">
+                        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-forest-600/10 text-forest-700 group-hover:bg-forest-600 group-hover:text-white transition">
+                            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="truncate font-display text-base font-bold text-ink-900 group-hover:text-forest-700 transition">
+                                {{ item.nama }}
+                            </h3>
+                            <p class="mt-0.5 truncate text-sm text-ink-500">{{ item.instansi }}</p>
+                        </div>
                     </div>
-                    <div class="min-w-0">
-                        <h3 class="truncate font-display text-base font-bold text-ink-900 group-hover:text-forest-700 transition">
-                            {{ item.nama }}
-                        </h3>
-                        <p class="mt-0.5 truncate text-sm text-ink-500">{{ item.instansi }}</p>
+
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <span class="badge badge-info font-medium">
+                            Kuota {{ item.terisi_total }}/{{ item.kuota_total }}
+                        </span>
+                        <span :class="statusBadge(item.status)" class="badge">
+                            {{ statusLabel(item.status) }}
+                        </span>
+                        <Link :href="route('admin.bidang.show', item.id)" class="btn-secondary px-3 py-1.5 text-xs">
+                            Detail
+                        </Link>
+                        <Link :href="route('admin.bidang.edit', item.id)" class="btn-secondary px-3 py-1.5 text-xs">
+                            Edit
+                        </Link>
+                        <button @click="handleDelete(item)" class="btn-danger px-3 py-1.5 text-xs">
+                            Hapus
+                        </button>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <span class="badge badge-info font-medium">
-                        Kuota {{ item.terisi_total }}/{{ item.kuota_total }}
+                <div v-if="(item.jurusan ?? []).length" class="flex flex-wrap items-center gap-1.5 border-t border-ink-300/30 pt-4">
+                    <span v-for="jurusan in item.jurusan" :key="jurusan" class="badge badge-info">
+                        {{ jurusan }}
                     </span>
-                    <span :class="statusBadge(item.status)" class="badge">
-                        {{ statusLabel(item.status) }}
-                    </span>
-                    <Link :href="route('admin.bidang.show', item.id)" class="btn-secondary px-3 py-1.5 text-xs">
-                        Detail
-                    </Link>
-                    <Link :href="route('admin.bidang.edit', item.id)" class="btn-secondary px-3 py-1.5 text-xs">
-                        Edit
-                    </Link>
-                    <button @click="handleDelete(item)" class="btn-danger px-3 py-1.5 text-xs">
-                        Hapus
-                    </button>
                 </div>
             </div>
 
@@ -125,5 +133,5 @@ const handleDelete = (item) => {
                 Tidak ada bidang yang ditemukan.
             </div>
         </div>
-    </AppLayout>
+    </AdminLayout>
 </template>

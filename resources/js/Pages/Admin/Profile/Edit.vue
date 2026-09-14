@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { Info } from 'lucide-vue-next';
@@ -28,7 +28,7 @@ const userInitials = computed(() => {
 
 <template>
     <Head title="Profile Admin" />
-    <AppLayout title="Profile Admin">
+    <AdminLayout title="Profile Admin">
         <div class="glass-panel mx-auto max-w-2xl rounded-3xl p-6 sm:p-10">
             <div class="mb-8">
                 <h2 class="font-display text-2xl font-bold text-ink-900">Profile Admin</h2>
@@ -87,5 +87,5 @@ const userInitials = computed(() => {
                 </p>
             </div>
         </div>
-    </AppLayout>
+    </AdminLayout>
 </template>

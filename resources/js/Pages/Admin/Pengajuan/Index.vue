@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
@@ -35,7 +35,7 @@ const handleReject = (item) => {
 
 <template>
     <Head title="Pengajuan Masuk" />
-    <AppLayout title="Pengajuan Masuk">
+    <AdminLayout title="Pengajuan Masuk">
         <div class="mb-6">
             <h2 class="font-display text-xl font-bold text-ink-900">Pengajuan PKL Masuk</h2>
             <p class="mt-1 text-sm text-ink-500">Tinjau dan proses pengajuan praktik kerja lapangan yang masuk.</p>
@@ -120,5 +120,5 @@ const handleReject = (item) => {
                 </table>
             </div>
         </section>
-    </AppLayout>
+    </AdminLayout>
 </template>

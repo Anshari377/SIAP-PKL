@@ -115,6 +115,6 @@ class AdminApplicationController extends Controller
     {
         return $user->agency_id
             ? Application::query()->whereHas('division', fn ($query) => $query->where('agency_id', $user->agency_id))
-            : Application::query()->whereKey(0);
+            : Application::query()->whereHas('division', fn ($query) => $query->whereNull('agency_id'));
     }
 }
