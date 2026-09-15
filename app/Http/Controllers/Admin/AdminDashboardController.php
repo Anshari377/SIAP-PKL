@@ -15,9 +15,10 @@ class AdminDashboardController extends Controller
         $divisionQuery = $request->user()->agency_id
             ? Division::where('agency_id', $request->user()->agency_id)
             : Division::whereNull('agency_id');
-        $applicationQuery = $request->user()->agency_id
+        $applicationBaseQuery = $request->user()->agency_id
             ? Application::whereHas('division', fn ($query) => $query->where('agency_id', $request->user()->agency_id))
             : Application::whereHas('division', fn ($query) => $query->whereNull('agency_id'));
+        $applicationQuery = $applicationBaseQuery->excludeDummy();
 
         return Inertia::render('Admin/Dashboard', [
             'activeNav' => 'admin.dashboard',
@@ -33,7 +34,7 @@ class AdminDashboardController extends Controller
                 ->limit(5)
                 ->get(),
             'bidangAktif' => (clone $divisionQuery)
-                ->withCount(['applications as terisi' => fn ($query) => $query->where('status', 'accepted')])
+                ->withCount(['applications as terisi' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
                 ->latest()
                 ->limit(5)
                 ->get(),

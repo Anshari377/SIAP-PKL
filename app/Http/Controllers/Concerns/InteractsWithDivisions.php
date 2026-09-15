@@ -12,7 +12,7 @@ trait InteractsWithDivisions
     {
         return Division::query()
             ->with('positions')
-            ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')])
+            ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
             ->get()
             ->map(fn (Division $division) => $this->withQuota($division));
     }
