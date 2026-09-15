@@ -13,6 +13,13 @@ use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\StatusPendaftaranController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SuperAdmin\AuditLogController;
+
+Route::middleware(['auth', 'role:super-admin']) // sesuaikan middleware role-mu
+    ->prefix('super-admin')
+    ->group(function () {
+        Route::get('/audit-log', [AuditLogController::class, 'index'])->name('super-admin.audit-log');
+    });
 
 Route::get('/', fn () => redirect()->route('katalog.index'));
 
