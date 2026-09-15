@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Lowongan;
-use App\Models\PengajuanPkl;
+use App\Models\Application;
+use App\Models\Division;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,28 +13,28 @@ class HomeController extends Controller
     {
         $userId = $request->user()->id;
 
-        $pengajuanAktif = PengajuanPkl::with('position.division')
+        $pengajuanAktif = Application::with('division')
             ->where('user_id', $userId)
-            ->whereNotIn('status', ['diterima', 'ditolak'])
+            ->whereIn('status', ['pending', 'accepted', 'revision'])
             ->latest()
             ->first();
 
         return Inertia::render('Home', [
             'activeNav' => 'home',
             'stats' => [
-                'lowongan_tersedia' => Lowongan::where('status', 'buka')->count(),
-                'pendaftaran' => PengajuanPkl::where('user_id', $userId)->count(),
-                'menunggu_verifikasi' => PengajuanPkl::where('user_id', $userId)
-                    ->whereIn('status', ['diajukan', 'berkas_diterima', 'diverifikasi'])->count(),
-                'diterima' => PengajuanPkl::where('user_id', $userId)->where('status', 'diterima')->count(),
+                'lowongan_tersedia' => Division::count(),
+                'pendaftaran' => Application::where('user_id', $userId)->count(),
+                'menunggu_verifikasi' => Application::where('user_id', $userId)
+                    ->whereIn('status', ['pending', 'revision'])->count(),
+                'diterima' => Application::where('user_id', $userId)->where('status', 'accepted')->count(),
             ],
             'pendaftaranAktif' => $pengajuanAktif ? [
-                'judul' => $pengajuanAktif->position->nama,
-                'instansi' => $pengajuanAktif->position->division->instansi,
-                'tanggal' => $pengajuanAktif->created_at->translatedFormat('d M Y'),
+                'judul' => $pengajuanAktif->division?->nama ?? 'Pengajuan PKL',
+                'instansi' => $pengajuanAktif->division?->instansi ?? '-',
+                'tanggal' => $pengajuanAktif->created_at?->translatedFormat('d M Y') ?? '-',
                 'status' => $pengajuanAktif->status,
             ] : null,
-            'pengumuman' => [], // isi dari tabel pengumuman bila sudah dibuat
+            'pengumuman' => [],
         ]);
     }
 }

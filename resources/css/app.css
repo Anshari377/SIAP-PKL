@@ -36,6 +36,7 @@
     .badge-warning { @apply bg-status-warning/15 text-gold-500; }
     .badge-danger  { @apply bg-status-danger/10 text-status-danger; }
     .badge-info    { @apply bg-status-info/10 text-forest-600; }
+    .badge-amber, .badge-revision { @apply bg-amber-100 text-amber-800 border border-amber-300/50; }
 
     .btn-primary {
          @apply inline-flex items-center justify-center gap-2 rounded-lg bg-forest-600 px-4 py-2.5
@@ -56,6 +57,11 @@
         @apply inline-flex items-center justify-center gap-2 rounded-lg bg-status-success px-4 py-2.5
                text-sm font-medium text-white transition hover:bg-green-600
                focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+    }
+    .btn-warning {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5
+               text-sm font-medium text-white transition hover:bg-amber-600
+               focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2;
     }
     .field-label {
         @apply mb-1.5 block text-sm font-medium text-ink-700;

@@ -20,6 +20,8 @@ class Application extends Model
         'end_date',
         'status',
         'document_path',
+        'consent_pdp',
+        'catatan_revisi',
     ];
 
     protected function casts(): array
@@ -27,6 +29,7 @@ class Application extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            'consent_pdp' => 'boolean',
         ];
     }
 

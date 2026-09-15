@@ -82,20 +82,22 @@ defineProps({
                         <Link :href="route('riwayat.index')" class="text-xs font-semibold text-forest-700 hover:underline">Lihat semua</Link>
                     </div>
 
-                    <div v-if="pendaftaranAktif" class="flex items-center gap-4 rounded-xl border border-ink-300/40 bg-white/50 p-4 shadow-sm">
-                        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-forest-600/10 text-forest-700">
-                            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                                <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-semibold text-ink-900">{{ pendaftaranAktif.judul }}</p>
-                            <p class="text-xs text-ink-500 mt-0.5">{{ pendaftaranAktif.instansi }} · {{ pendaftaranAktif.tanggal }}</p>
-                        </div>
-                        <span :class="getStatusBadgeClass(pendaftaranAktif.status)" class="badge">
-                            {{ getStatusLabel(pendaftaranAktif.status) }}
-                        </span>
+                    <div v-if="pendaftaranAktif">
+                        <Link :href="route('status.index')" class="flex items-center gap-4 rounded-xl border border-ink-300/40 bg-white/50 p-4 shadow-sm transition hover:bg-white/80">
+                            <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-forest-600/10 text-forest-700">
+                                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                    <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-semibold text-ink-900">{{ pendaftaranAktif.judul }}</p>
+                                <p class="text-xs text-ink-500 mt-0.5">{{ pendaftaranAktif.instansi }} · {{ pendaftaranAktif.tanggal }}</p>
+                            </div>
+                            <span :class="getStatusBadgeClass(pendaftaranAktif.status)" class="badge">
+                                {{ getStatusLabel(pendaftaranAktif.status) }}
+                            </span>
+                        </Link>
                     </div>
                     <div v-else class="rounded-xl border border-dashed border-ink-300/60 p-8 text-center">
                         <p class="text-sm text-ink-500">Belum ada pendaftaran aktif saat ini.</p>

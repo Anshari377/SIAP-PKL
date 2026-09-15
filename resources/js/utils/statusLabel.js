@@ -19,6 +19,9 @@ export const getStatusLabel = (status) => {
         case 'berkas_diterima':
         case 'diverifikasi':
             return 'Diterima';
+        case 'revision':
+        case 'revisi':
+            return 'Perlu Revisi';
         case 'rejected':
         case 'ditolak':
             return 'Ditolak';
@@ -42,6 +45,9 @@ export const getStatusBadgeClass = (status) => {
         case 'berkas_diterima':
         case 'diverifikasi':
             return 'badge-success';
+        case 'revision':
+        case 'revisi':
+            return 'badge-revision';
         case 'rejected':
         case 'ditolak':
             return 'badge-danger';
@@ -90,6 +96,16 @@ export const getTimelineSteps = (pendaftaran) => {
             label: 'Ditolak',
             date: updatedAt,
             status: 'rejected',
+        };
+        return [step1, step2];
+    }
+
+    // If status is revision
+    if (rawStatus === 'revision' || rawStatus === 'revisi') {
+        const step2 = {
+            label: 'Perlu Revisi',
+            date: updatedAt,
+            status: 'revision',
         };
         return [step1, step2];
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Models\Division;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -12,6 +13,12 @@ class PengajuanPklController extends Controller
 {
     public function index(Request $request)
     {
+        $activeApplication = Application::where('user_id', $request->user()->id)
+            ->whereIn('status', ['pending', 'accepted', 'revision'])
+            ->with('division')
+            ->latest()
+            ->first();
+
         $divisions = Division::query()
             ->orderBy('nama')
             ->get()
@@ -35,11 +42,29 @@ class PengajuanPklController extends Controller
         return Inertia::render('Pengajuan/Index', [
             'activeNav' => 'pengajuan',
             'divisions' => $divisions,
+            'hasActiveApplication' => $activeApplication !== null,
+            'activeApplication' => $activeApplication ? [
+                'id' => $activeApplication->id,
+                'status' => $activeApplication->status,
+                'division_nama' => $activeApplication->division?->nama ?? '-',
+                'instansi' => $activeApplication->division?->instansi ?? '-',
+                'created_at' => $activeApplication->created_at?->format('d M Y'),
+            ] : null,
         ]);
     }
 
     public function store(Request $request)
     {
+        $existingActive = Application::where('user_id', $request->user()->id)
+            ->whereIn('status', ['pending', 'accepted', 'revision'])
+            ->first();
+
+        if ($existingActive) {
+            return back()->withErrors([
+                'message' => 'Anda sudah memiliki permohonan aktif, silakan selesaikan atau tunggu prosesnya sebelum mengajukan permohonan baru.',
+            ]);
+        }
+
         $data = $request->validate([
             'division_id' => ['required', 'integer', 'exists:divisions,id'],
             'start_date' => ['required', 'date'],
@@ -57,6 +82,7 @@ class PengajuanPklController extends Controller
             'members.*.major' => ['required', 'string', 'max:255'],
             'members.*.phone' => ['required', 'string', 'max:30'],
             'document' => ['required', 'file', 'mimes:pdf', 'max:5120'],
+            'consent_pdp' => ['required', 'accepted'],
         ]);
 
         $divisionId = $data['division_id'];
@@ -105,6 +131,7 @@ class PengajuanPklController extends Controller
             'end_date' => $endDate,
             'status' => 'pending',
             'document_path' => $documentPath,
+            'consent_pdp' => true,
         ]);
 
         $application->members()->create([
@@ -126,6 +153,35 @@ class PengajuanPklController extends Controller
         }
 
         return redirect()->route('pengajuan.index')->with('success', 'Pengajuan PKL berhasil dikirim dan menunggu verifikasi.');
+    }
+
+    public function reupload(Request $request, Application $application)
+    {
+        abort_unless($application->user_id === $request->user()->id && $application->status === 'revision', 403);
+
+        $request->validate([
+            'document' => ['required', 'file', 'mimes:pdf', 'max:5120'],
+        ]);
+
+        if ($application->document_path && Storage::disk('public')->exists($application->document_path)) {
+            Storage::disk('public')->delete($application->document_path);
+        }
+
+        $file = $request->file('document');
+        $nama = sprintf(
+            'surat_pengajuan_user%d_%s_%s.pdf',
+            $request->user()->id,
+            now()->format('YmdHis'),
+            Str::random(6)
+        );
+        $documentPath = $file->storeAs('applications', $nama, 'public');
+
+        $application->update([
+            'document_path' => $documentPath,
+            'status' => 'pending',
+        ]);
+
+        return redirect()->route('riwayat.index')->with('success', 'Berkas revisi berhasil diunggah ulang dan status pengajuan kembali dalam proses verifikasi.');
     }
 
     public function checkAvailability(Request $request)

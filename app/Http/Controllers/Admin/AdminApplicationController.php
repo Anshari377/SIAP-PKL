@@ -39,10 +39,18 @@ class AdminApplicationController extends Controller
     public function updateStatus(Request $request, Application $pengajuan)
     {
         $application = $this->queryFor($request->user())->with('division')->findOrFail($pengajuan->id);
-        $data = $request->validate(['status' => ['required', 'in:accepted,rejected']]);
+
+        $data = $request->validate([
+            'status' => ['required', 'in:accepted,rejected,revision'],
+            'catatan_revisi' => ['required_if:status,revision', 'nullable', 'string', 'max:1000'],
+        ]);
 
         DB::transaction(function () use ($application, $data) {
-            $application->update(['status' => $data['status']]);
+            $updateData = ['status' => $data['status']];
+            if ($data['status'] === 'revision') {
+                $updateData['catatan_revisi'] = $data['catatan_revisi'];
+            }
+            $application->update($updateData);
         });
 
         return back()->with('success', 'Status pengajuan berhasil diperbarui.');

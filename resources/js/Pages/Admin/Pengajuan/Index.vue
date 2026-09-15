@@ -57,6 +57,7 @@ const handleReject = (item) => {
                         <option value="">Semua Status</option>
                         <option value="pending">Menunggu</option>
                         <option value="accepted">Diterima</option>
+                        <option value="revision">Perlu Revisi</option>
                         <option value="rejected">Ditolak</option>
                     </select>
                 </div>

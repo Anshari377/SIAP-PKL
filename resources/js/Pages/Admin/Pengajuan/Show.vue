@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate, getTimelineSteps } from '@/utils/statusLabel';
 
 const props = defineProps({
@@ -14,8 +14,29 @@ const anggota = computed(() => pengajuan.value.members ?? []);
 const documentName = computed(() => pengajuan.value.document_path?.split('/').pop() ?? 'Berkas belum tersedia');
 const steps = computed(() => getTimelineSteps(pengajuan.value));
 
+const showRevisionModal = ref(false);
+const catatanRevisi = ref('');
+const revisionError = ref('');
+
 const handleStatus = (status) => {
     router.patch(route('admin.pengajuan.status', pengajuan.value.id), { status });
+};
+
+const submitRevision = () => {
+    if (!catatanRevisi.value.trim()) {
+        revisionError.value = 'Catatan revisi wajib diisi.';
+        return;
+    }
+    revisionError.value = '';
+    router.patch(route('admin.pengajuan.status', pengajuan.value.id), {
+        status: 'revision',
+        catatan_revisi: catatanRevisi.value,
+    }, {
+        onSuccess: () => {
+            showRevisionModal.value = false;
+            catatanRevisi.value = '';
+        }
+    });
 };
 </script>
 
@@ -34,6 +55,20 @@ const handleStatus = (status) => {
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Left: Detail Info -->
             <div class="lg:col-span-2 space-y-6">
+                <!-- Revision Note Box if application is revision -->
+                <div v-if="pengajuan.status === 'revision' || pengajuan.catatan_revisi" class="rounded-2xl border border-amber-300 bg-amber-50/80 p-6 shadow-sm">
+                    <div class="flex items-center gap-2.5 text-amber-800 font-bold mb-2">
+                        <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        Catatan Revisi dari Admin
+                    </div>
+                    <p class="text-sm leading-relaxed text-amber-900 bg-white/70 p-3.5 rounded-xl border border-amber-200">
+                        {{ pengajuan.catatan_revisi || 'Belum ada catatan detail.' }}
+                    </p>
+                </div>
+
                 <!-- Applicant Info -->
                 <div class="glass-panel p-6 sm:p-8">
                     <div class="mb-6 flex items-center justify-between">
@@ -131,14 +166,19 @@ const handleStatus = (status) => {
                     </h3>
                     <p class="text-sm text-ink-500">Tinjau pengajuan ini dan tentukan keputusan.</p>
                     <div class="space-y-2">
-                        <button v-if="pengajuan.status === 'pending'" @click="handleStatus('accepted')" class="btn-success w-full text-center text-sm">
-                            Terima Pengajuan
-                        </button>
-                        <button v-if="pengajuan.status === 'pending'" @click="handleStatus('rejected')" class="btn-danger w-full text-center text-sm">
-                            Tolak Pengajuan
-                        </button>
-                        <div v-if="pengajuan.status !== 'pending'" class="rounded-lg bg-ink-100 p-3 text-center text-sm font-medium text-ink-500">
-                            Pengajuan sudah diproses
+                        <template v-if="pengajuan.status === 'pending'">
+                            <button @click="handleStatus('accepted')" class="btn-success w-full text-center text-sm">
+                                Terima Pengajuan
+                            </button>
+                            <button @click="showRevisionModal = true" class="btn-warning w-full text-center text-sm">
+                                Minta Revisi
+                            </button>
+                            <button @click="handleStatus('rejected')" class="btn-danger w-full text-center text-sm">
+                                Tolak Pengajuan
+                            </button>
+                        </template>
+                        <div v-else class="rounded-lg bg-ink-100 p-3 text-center text-sm font-medium text-ink-700">
+                            Status Pengajuan: <strong class="capitalize">{{ getStatusLabel(pengajuan.status) }}</strong>
                         </div>
                     </div>
                 </div>
@@ -162,6 +202,12 @@ const handleStatus = (status) => {
                                         <polyline points="20 6 9 17 4 12"/>
                                     </svg>
                                 </div>
+                                <div v-else-if="step.status === 'revision'" class="grid h-5 w-5 place-items-center rounded-full bg-amber-500 text-white ring-4 ring-amber-400/20">
+                                    <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3">
+                                        <line x1="12" y1="8" x2="12" y2="12"/>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                    </svg>
+                                </div>
                                 <div v-else-if="step.status === 'in_progress'" class="grid h-5 w-5 place-items-center rounded-full bg-forest-600 text-white ring-4 ring-forest-500/20">
                                     <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                                 </div>
@@ -175,6 +221,7 @@ const handleStatus = (status) => {
                             <div class="min-w-0 flex-1 pt-0.5">
                                 <p class="text-xs" :class="[
                                     step.status === 'completed' ? 'font-bold text-ink-900' : '',
+                                    step.status === 'revision' ? 'font-bold text-amber-700' : '',
                                     step.status === 'in_progress' ? 'font-bold text-forest-700' : '',
                                     step.status === 'rejected' ? 'font-bold text-status-danger' : '',
                                     step.status === 'pending' ? 'font-medium text-ink-400' : ''
@@ -185,6 +232,33 @@ const handleStatus = (status) => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Minta Revisi -->
+        <div v-if="showRevisionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-4 backdrop-blur-sm">
+            <div class="glass-panel w-full max-w-lg p-6 bg-white shadow-2xl rounded-2xl">
+                <h3 class="font-display text-lg font-bold text-ink-900 mb-2">Minta Revisi Berkas</h3>
+                <p class="text-xs text-ink-500 mb-4">
+                    Tuliskan catatan atau alasan revisi berkas yang wajib diperbaiki oleh pemohon.
+                </p>
+
+                <div class="mb-4">
+                    <label class="field-label" for="catatan_revisi">Catatan / Alasan Revisi <span class="text-red-600">*</span></label>
+                    <textarea
+                        id="catatan_revisi"
+                        v-model="catatanRevisi"
+                        rows="4"
+                        class="field-input"
+                        placeholder="Contoh: Surat pengantar belum ditandatangani oleh pimpinan kampus, mohon upload ulang surat bertanda tangan resmi."
+                    ></textarea>
+                    <p v-if="revisionError" class="mt-1.5 text-xs font-medium text-red-600">{{ revisionError }}</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" @click="showRevisionModal = false" class="btn-secondary text-xs">Batal</button>
+                    <button type="button" @click="submitRevision" class="btn-warning text-xs">Kirim Permintaan Revisi</button>
                 </div>
             </div>
         </div>

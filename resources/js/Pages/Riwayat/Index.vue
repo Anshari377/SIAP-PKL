@@ -31,7 +31,12 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                     <tbody class="divide-y divide-ink-300/20">
                         <tr v-for="(item, index) in riwayat" :key="item.id" class="transition hover:bg-forest-50/60">
                             <td class="px-4 py-4 text-ink-500">{{ index + 1 }}</td>
-                            <td class="px-4 py-4 font-semibold text-ink-900">{{ item.bidang }}</td>
+                            <td class="px-4 py-4 font-semibold text-ink-900">
+                                {{ item.bidang }}
+                                <p v-if="item.status === 'revision' && item.catatan_revisi" class="mt-1 text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+                                    Catatan Revisi: {{ item.catatan_revisi }}
+                                </p>
+                            </td>
                             <td class="px-4 py-4 font-medium text-ink-800">{{ item.posisi }}</td>
                             <td class="px-4 py-4 text-ink-700">{{ item.instansi }}</td>
                             <td class="px-4 py-4 text-ink-500">{{ formatDate(item.created_at) }}</td>
@@ -41,8 +46,11 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                                 </span>
                             </td>
                             <td class="px-4 py-4 text-right">
-                                <Link :href="route('status.index')" class="btn-secondary px-3 py-1.5 text-xs">
-                                    Lihat Detail
+                                <Link
+                                    :href="route('status.index')"
+                                    :class="item.status === 'revision' ? 'btn-warning px-3 py-1.5 text-xs' : 'btn-secondary px-3 py-1.5 text-xs'"
+                                >
+                                    {{ item.status === 'revision' ? 'Upload Revisi' : 'Lihat Detail' }}
                                 </Link>
                             </td>
                         </tr>

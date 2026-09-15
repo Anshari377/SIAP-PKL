@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { Head, useForm, usePage, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
     divisions: { type: Array, default: () => [] },
+    hasActiveApplication: { type: Boolean, default: false },
+    activeApplication: { type: Object, default: null },
 });
 
 const page = usePage();
@@ -25,6 +27,7 @@ const form = useForm({
         phone: '',
     },
     document: null,
+    consent_pdp: false,
 });
 
 const members = ref([]);
@@ -148,12 +151,16 @@ const validateFrontend = () => {
         errors.document = 'Surat Pengantar / Proposal (PDF) wajib diunggah.';
     }
 
+    if (!form.consent_pdp) {
+        errors.consent_pdp = 'Anda wajib menyetujui pemrosesan data pribadi sesuai Undang-Undang Nomor 27 Tahun 2022 (UU PDP).';
+    }
+
     frontErrors.value = errors;
     return Object.keys(errors).length === 0;
 };
 
 const canSubmit = computed(() => {
-    return !checking.value && availability.value?.available !== false;
+    return !checking.value && availability.value?.available !== false && form.consent_pdp;
 });
 
 const submit = () => {
@@ -177,7 +184,44 @@ const submit = () => {
 <template>
     <Head title="Pengajuan PKL" />
     <AppLayout title="Pengajuan PKL">
-        <form @submit.prevent="submit" enctype="multipart/form-data" class="mx-auto max-w-5xl space-y-6">
+        <!-- If user already has an active application -->
+        <div v-if="hasActiveApplication" class="mx-auto max-w-3xl glass-panel p-8 text-center rounded-3xl space-y-6">
+            <div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-amber-500/10 text-amber-600">
+                <svg viewBox="0 0 24 24" class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="font-display text-2xl font-bold text-ink-900">Permohonan Aktif Ditemukan</h2>
+                <p class="mt-2 text-sm text-ink-600 max-w-xl mx-auto leading-relaxed">
+                    Anda sudah memiliki permohonan aktif, silakan selesaikan atau tunggu prosesnya sebelum mengajukan permohonan baru.
+                </p>
+            </div>
+
+            <div v-if="activeApplication" class="rounded-2xl border border-ink-300/40 bg-white/70 p-5 text-left max-w-md mx-auto shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-ink-500 font-medium">Permohonan Berjalan</span>
+                    <span class="badge badge-revision">
+                        {{ activeApplication.status === 'revision' ? 'Perlu Revisi' : (activeApplication.status === 'accepted' ? 'Diterima' : 'Dalam Proses') }}
+                    </span>
+                </div>
+                <p class="font-bold text-ink-900">{{ activeApplication.division_nama }}</p>
+                <p class="text-xs text-ink-500 mt-1">{{ activeApplication.instansi }} · Tanggal: {{ activeApplication.created_at }}</p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+                <Link :href="route('status.index')" class="btn-primary px-6 py-2.5">
+                    Lihat Status Permohonan
+                </Link>
+                <Link :href="route('riwayat.index')" class="btn-secondary px-6 py-2.5">
+                    Lihat Riwayat Pendaftaran
+                </Link>
+            </div>
+        </div>
+
+        <form v-else @submit.prevent="submit" enctype="multipart/form-data" class="mx-auto max-w-5xl space-y-6">
             <!-- Server / global error -->
             <div
                 v-if="form.errors.message"
@@ -441,8 +485,25 @@ const submit = () => {
                 </p>
             </section>
 
-            <!-- Submit -->
+            <!-- Consent UU PDP & Submit -->
             <section class="glass-panel p-6 sm:p-8">
+                <div class="mb-5 rounded-xl border border-amber-200/80 bg-amber-50/60 p-4">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input
+                            v-model="form.consent_pdp"
+                            type="checkbox"
+                            required
+                            class="mt-1 h-4 w-4 shrink-0 rounded border-ink-300 text-forest-600 focus:ring-forest-500"
+                        />
+                        <span class="text-xs font-medium leading-relaxed text-ink-800">
+                            Saya menyetujui pemrosesan data pribadi saya sesuai dengan Undang-Undang Nomor 27 Tahun 2022 tentang Perlindungan Data Pribadi. <span class="text-red-600">*</span>
+                        </span>
+                    </label>
+                    <p v-if="frontErrors.consent_pdp || form.errors.consent_pdp" class="mt-2 text-xs font-medium text-red-600">
+                        {{ frontErrors.consent_pdp || form.errors.consent_pdp }}
+                    </p>
+                </div>
+
                 <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
                     <p v-if="form.tipe === 'kelompok'" class="text-xs text-ink-500">
                         Total slot dibutuhkan: ketua (1) + anggota ({{ members.length }}) = <strong>{{ 1 + members.length }}</strong>
@@ -457,7 +518,10 @@ const submit = () => {
                         >
                             {{ form.processing ? 'Mengirim...' : 'Kirim Pengajuan' }}
                         </button>
-                        <p v-if="availability?.available === false" class="text-center text-xs font-semibold text-red-600 sm:text-right">
+                        <p v-if="!form.consent_pdp" class="text-center text-xs font-medium text-amber-700 sm:text-right">
+                            * Harap centang persetujuan UU PDP untuk mengaktifkan tombol kirim.
+                        </p>
+                        <p v-else-if="availability?.available === false" class="text-center text-xs font-semibold text-red-600 sm:text-right">
                             Kuota tidak tersedia untuk periode ini. Ubah bidang atau rentang tanggal untuk mengaktifkan tombol kirim.
                         </p>
                     </div>
