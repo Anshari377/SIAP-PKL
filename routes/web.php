@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\AdminApplicationController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KelompokController;
-use App\Http\Controllers\LowonganController;
+use App\Http\Controllers\BidangController;
 use App\Http\Controllers\PengajuanPklController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicCatalogController;
@@ -33,8 +33,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
-        Route::get('/lowongan', [LowonganController::class, 'index'])->name('lowongan.index');
-        Route::get('/lowongan/{division}', [LowonganController::class, 'show'])->name('lowongan.show');
+        Route::get('/bidang', [BidangController::class, 'index'])->name('bidang.index');
+        Route::get('/bidang/{division}', [BidangController::class, 'show'])->name('bidang.show');
         Route::get('/pengajuan', [PengajuanPklController::class, 'index'])->name('pengajuan.index');
         Route::get('/pengajuan/check-availability', [PengajuanPklController::class, 'checkAvailability'])->name('pengajuan.check-availability');
         Route::post('/pengajuan', [PengajuanPklController::class, 'store'])->name('pengajuan.store');
