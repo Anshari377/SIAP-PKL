@@ -20,7 +20,7 @@ const isAdmin = computed(() => (page.props.auth?.roles ?? []).includes('agency_a
 
 const studentNav = [
     { label: 'Home', href: route('home'), active: 'home', icon: 'home' },
-    { label: 'Bidang PKL', href: route('lowongan.index'), active: 'lowongan', icon: 'briefcase' },
+    { label: 'Bidang PKL', href: route('bidang.index'), active: 'bidang', icon: 'briefcase' },
     { label: 'Pengajuan PKL', href: route('pengajuan.index'), active: 'pengajuan', icon: 'file-text' },
     { label: 'Kelompok Saya', href: route('kelompok.index'), active: 'kelompok', icon: 'users' },
     { label: 'Riwayat', href: route('riwayat.index'), active: 'riwayat', icon: 'clock' },

@@ -99,7 +99,7 @@ defineProps({
                     </div>
                     <div v-else class="rounded-xl border border-dashed border-ink-300/60 p-8 text-center">
                         <p class="text-sm text-ink-500">Belum ada pendaftaran aktif saat ini.</p>
-                        <Link :href="route('lowongan.index')" class="btn-primary mt-4 text-xs">Cari Bidang PKL</Link>
+                        <Link :href="route('bidang.index')" class="btn-primary mt-4 text-xs">Cari Bidang PKL</Link>
                     </div>
                 </div>
 
