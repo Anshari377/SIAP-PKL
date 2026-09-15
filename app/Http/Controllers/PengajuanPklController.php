@@ -18,6 +18,7 @@ class PengajuanPklController extends Controller
             ->map(function (Division $division) {
                 $occupied = Application::where('division_id', $division->id)
                     ->where('status', 'accepted')
+                    ->excludeDummy()
                     ->withCount('members')
                     ->get()
                     ->sum(fn (Application $app) => 1 + $app->members_count);
@@ -69,6 +70,7 @@ class PengajuanPklController extends Controller
 
         $overlappingApps = Application::where('division_id', $divisionId)
             ->where('status', 'accepted')
+            ->excludeDummy()
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->where('start_date', '<=', $endDate)
                     ->where('end_date', '>=', $startDate);
@@ -140,6 +142,7 @@ class PengajuanPklController extends Controller
 
         $overlappingApps = Application::where('division_id', $divisionId)
             ->where('status', 'accepted')
+            ->excludeDummy()
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->where('start_date', '<=', $endDate)
                     ->where('end_date', '>=', $startDate);
@@ -160,6 +163,7 @@ class PengajuanPklController extends Controller
 
         $earliestEndDate = Application::where('division_id', $divisionId)
             ->where('status', 'accepted')
+            ->excludeDummy()
             ->where('end_date', '>=', $startDate)
             ->min('end_date');
 

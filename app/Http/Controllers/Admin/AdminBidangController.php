@@ -15,7 +15,7 @@ class AdminBidangController extends Controller
     {
         $divisions = $this->withQuota(
             $this->queryFor(request()->user())
-                ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')])
+                ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
                 ->latest()
                 ->get(),
         );
@@ -55,7 +55,7 @@ class AdminBidangController extends Controller
     {
         $division = $this->withQuota(
             $this->queryFor(request()->user())
-                ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')])
+                ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
                 ->findOrFail($bidang),
         );
 
@@ -90,7 +90,7 @@ class AdminBidangController extends Controller
     public function destroy(Request $request, $bidang)
     {
         $division = $this->queryFor($request->user())->findOrFail($bidang);
-        abort_if($division->applications()->exists(), 422, 'Bidang yang sudah memiliki pengajuan tidak dapat dihapus.');
+        abort_if($division->applications()->excludeDummy()->exists(), 422, 'Bidang yang sudah memiliki pengajuan tidak dapat dihapus.');
         $division->delete();
 
         return to_route('admin.bidang.index')->with('success', 'Bidang berhasil dihapus.');

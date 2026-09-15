@@ -38,7 +38,7 @@ class PublicCatalogController extends Controller
     {
         $division = Division::with('positions')
             ->where('slug', $division)
-            ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')])
+            ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
             ->firstOrFail();
 
         return Inertia::render('Katalog/Show', [

@@ -113,8 +113,10 @@ class AdminApplicationController extends Controller
 
     private function queryFor($user)
     {
-        return $user->agency_id
+        $query = $user->agency_id
             ? Application::query()->whereHas('division', fn ($query) => $query->where('agency_id', $user->agency_id))
             : Application::query()->whereHas('division', fn ($query) => $query->whereNull('agency_id'));
+
+        return $query->excludeDummy();
     }
 }

@@ -44,4 +44,9 @@ class Application extends Model
     {
         return $this->hasMany(ApplicationMember::class);
     }
+
+    public function scopeExcludeDummy($query)
+    {
+        return $query->whereHas('user', fn ($q) => $q->where('email', 'not like', 'demo.%@pkl.test'));
+    }
 }
