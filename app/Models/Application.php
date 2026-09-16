@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 
 class Application extends Model
 {
@@ -42,7 +41,7 @@ class Application extends Model
     public function getSuratBalasanUrlAttribute(): ?string
     {
         return $this->surat_balasan_path
-            ? Storage::disk('public')->url($this->surat_balasan_path)
+            ? '/storage/'.ltrim($this->surat_balasan_path, '/')
             : null;
     }
 

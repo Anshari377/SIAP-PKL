@@ -43,10 +43,12 @@ class AdminApplicationController extends Controller
     {
         $application = $this->queryFor($request->user())->with('division')->findOrFail($pengajuan->id);
 
+        abort_unless($application->status === 'pending', 422, 'Pengajuan ini sudah diproses.');
+
         $data = $request->validate([
-            'status' => ['required', 'in:accepted,rejected,revision'],
+            'status' => ['required', 'string', 'in:accepted,rejected,revision'],
             'catatan_revisi' => ['required_if:status,revision', 'nullable', 'string', 'max:1000'],
-            'surat_balasan' => ['required_if:status,accepted,rejected', 'nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+            'surat_balasan' => ['required_if:status,accepted', 'required_if:status,rejected', 'nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
         ]);
 
         DB::transaction(function () use ($application, $data, $request) {

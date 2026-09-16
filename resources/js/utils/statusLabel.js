@@ -82,65 +82,43 @@ export const getTimelineSteps = (pendaftaran) => {
     const rawStatus = (pendaftaran.status || 'pending').toLowerCase();
     const createdAt = formatDate(pendaftaran.created_at);
     const updatedAt = formatDate(pendaftaran.updated_at || pendaftaran.created_at);
+    const endDate = pendaftaran.end_date ? new Date(pendaftaran.end_date) : null;
+    const isCompleted = rawStatus === 'completed'
+        || rawStatus === 'selesai'
+        || (rawStatus === 'accepted' && endDate && endDate < new Date());
 
-    // Step 1: Pengajuan Dibuat (Always completed once application is created)
-    const step1 = {
+    const steps = [{
         label: 'Pengajuan Dibuat',
         date: createdAt,
         status: 'completed',
-    };
+    }, {
+        label: 'Verifikasi Admin',
+        date: rawStatus === 'pending' ? 'Dalam proses' : updatedAt,
+        status: rawStatus === 'pending' ? 'in_progress' : 'completed',
+    }];
 
-    // If status is rejected
     if (rawStatus === 'rejected' || rawStatus === 'ditolak') {
-        const step2 = {
-            label: 'Ditolak',
-            date: updatedAt,
-            status: 'rejected',
-        };
-        return [step1, step2];
+        steps.push({ label: 'Ditolak', date: updatedAt, status: 'rejected' });
+        return steps;
     }
 
-    // If status is revision
     if (rawStatus === 'revision' || rawStatus === 'revisi') {
-        const step2 = {
-            label: 'Perlu Revisi',
-            date: updatedAt,
-            status: 'revision',
-        };
-        return [step1, step2];
+        steps.push({ label: 'Perlu Revisi', date: updatedAt, status: 'revision' });
+        return steps;
     }
 
-    // Step 2: Menunggu Verifikasi Admin OR Diterima
-    let step2Status = 'in_progress';
-    let step2Label = 'Menunggu Verifikasi Admin';
-    let step2Date = 'Dalam proses';
-
-    if (rawStatus === 'accepted' || rawStatus === 'diterima' || rawStatus === 'completed' || rawStatus === 'selesai') {
-        step2Status = 'completed';
-        step2Label = 'Diterima';
-        step2Date = updatedAt;
+    if (rawStatus === 'accepted' || rawStatus === 'diterima' || isCompleted) {
+        steps.push({ label: 'Diterima', date: updatedAt, status: 'completed' });
+        steps.push({
+            label: 'Selesai',
+            date: isCompleted ? (pendaftaran.end_date ? formatDate(pendaftaran.end_date) : updatedAt) : '-',
+            status: isCompleted ? 'completed' : 'pending',
+        });
+        return steps;
     }
 
-    const step2 = {
-        label: step2Label,
-        date: step2Date,
-        status: step2Status,
-    };
+    steps.push({ label: 'Diterima', date: '-', status: 'pending' });
+    steps.push({ label: 'Selesai', date: '-', status: 'pending' });
 
-    // Step 3: Selesai
-    let step3Status = 'pending';
-    let step3Date = '-';
-
-    if (rawStatus === 'completed' || rawStatus === 'selesai') {
-        step3Status = 'completed';
-        step3Date = updatedAt;
-    }
-
-    const step3 = {
-        label: 'Selesai',
-        date: step3Date,
-        status: step3Status,
-    };
-
-    return [step1, step2, step3];
+    return steps;
 };
