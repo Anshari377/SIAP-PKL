@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Application extends Model
 {
@@ -21,6 +22,7 @@ class Application extends Model
         'status',
         'is_walk_in',
         'document_path',
+        'surat_balasan_path',
         'consent_pdp',
         'catatan_revisi',
     ];
@@ -33,6 +35,15 @@ class Application extends Model
             'consent_pdp' => 'boolean',
             'is_walk_in' => 'boolean',
         ];
+    }
+
+    protected $appends = ['surat_balasan_url'];
+
+    public function getSuratBalasanUrlAttribute(): ?string
+    {
+        return $this->surat_balasan_path
+            ? Storage::disk('public')->url($this->surat_balasan_path)
+            : null;
     }
 
     public function user(): BelongsTo

@@ -46,13 +46,24 @@ class AdminApplicationController extends Controller
         $data = $request->validate([
             'status' => ['required', 'in:accepted,rejected,revision'],
             'catatan_revisi' => ['required_if:status,revision', 'nullable', 'string', 'max:1000'],
+            'surat_balasan' => ['required_if:status,accepted,rejected', 'nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
         ]);
 
-        DB::transaction(function () use ($application, $data) {
+        DB::transaction(function () use ($application, $data, $request) {
             $updateData = ['status' => $data['status']];
             if ($data['status'] === 'revision') {
                 $updateData['catatan_revisi'] = $data['catatan_revisi'];
             }
+
+            if ($request->hasFile('surat_balasan')) {
+                if ($application->surat_balasan_path && Storage::disk('public')->exists($application->surat_balasan_path)) {
+                    Storage::disk('public')->delete($application->surat_balasan_path);
+                }
+
+                $updateData['surat_balasan_path'] = $request->file('surat_balasan')
+                    ->store('reply-letters', 'public');
+            }
+
             $application->update($updateData);
         });
 

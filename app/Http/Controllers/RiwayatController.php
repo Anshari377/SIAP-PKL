@@ -24,6 +24,7 @@ class RiwayatController extends Controller
                     'instansi' => $item->division?->instansi ?? 'Data tidak tersedia',
                     'catatan_revisi' => $item->catatan_revisi,
                     'document_path' => $item->document_path,
+                    'surat_balasan_url' => $item->surat_balasan_url,
                 ];
             });
 

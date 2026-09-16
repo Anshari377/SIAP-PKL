@@ -17,9 +17,25 @@ const steps = computed(() => getTimelineSteps(pengajuan.value));
 const showRevisionModal = ref(false);
 const catatanRevisi = ref('');
 const revisionError = ref('');
+const suratBalasan = ref(null);
+const suratBalasanError = ref('');
 
 const handleStatus = (status) => {
-    router.patch(route('admin.pengajuan.status', pengajuan.value.id), { status });
+    if (!suratBalasan.value) {
+        suratBalasanError.value = 'Surat balasan wajib diunggah sebelum menetapkan status ini.';
+        return;
+    }
+
+    suratBalasanError.value = '';
+    router.patch(route('admin.pengajuan.status', pengajuan.value.id), {
+        status,
+        surat_balasan: suratBalasan.value,
+    }, { forceFormData: true });
+};
+
+const selectSuratBalasan = (event) => {
+    suratBalasan.value = event.target.files?.[0] ?? null;
+    suratBalasanError.value = '';
 };
 
 const submitRevision = () => {
@@ -167,6 +183,12 @@ const submitRevision = () => {
                     <p class="text-sm text-ink-500">Tinjau pengajuan ini dan tentukan keputusan.</p>
                     <div class="space-y-2">
                         <template v-if="pengajuan.status === 'pending'">
+                            <div>
+                                <label class="field-label" for="surat_balasan">Surat Balasan</label>
+                                <input id="surat_balasan" type="file" accept=".pdf,.doc,.docx" class="field-input text-xs" @change="selectSuratBalasan" />
+                                <p class="mt-1 text-[11px] text-ink-500">PDF, DOC, atau DOCX maksimal 5 MB. Wajib untuk menerima atau menolak.</p>
+                                <p v-if="suratBalasanError" class="field-error">{{ suratBalasanError }}</p>
+                            </div>
                             <button @click="handleStatus('accepted')" class="btn-success w-full text-center text-sm">
                                 Terima Pengajuan
                             </button>
