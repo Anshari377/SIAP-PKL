@@ -53,6 +53,8 @@ class AdminApplicationController extends Controller
             $updateData = ['status' => $data['status']];
             if ($data['status'] === 'revision') {
                 $updateData['catatan_revisi'] = $data['catatan_revisi'];
+            } else {
+                $updateData['catatan_revisi'] = null;
             }
 
             if ($request->hasFile('surat_balasan')) {

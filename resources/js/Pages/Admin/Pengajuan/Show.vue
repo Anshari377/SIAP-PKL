@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref, computed, watch, nextTick } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate, getTimelineSteps } from '@/utils/statusLabel';
 
 const props = defineProps({
@@ -15,43 +15,83 @@ const documentName = computed(() => pengajuan.value.document_path?.split('/').po
 const steps = computed(() => getTimelineSteps(pengajuan.value));
 
 const showRevisionModal = ref(false);
-const catatanRevisi = ref('');
 const revisionError = ref('');
-const suratBalasan = ref(null);
-const suratBalasanError = ref('');
+const suratBalasanAlert = ref(null);
 
-const handleStatus = (status) => {
-    if (!suratBalasan.value) {
-        suratBalasanError.value = 'Surat balasan wajib diunggah sebelum menetapkan status ini.';
+const statusForm = useForm({
+    status: '',
+    surat_balasan: null,
+    _method: 'patch',
+});
+
+const revisionForm = useForm({
+    status: 'revision',
+    catatan_revisi: '',
+});
+
+const suratBalasanError = computed(() => statusForm.errors.surat_balasan ?? '');
+const formError = computed(() => statusForm.errors.status ?? statusForm.error ?? '');
+
+watch([suratBalasanError, formError], ([suratBalasanErr, formErr]) => {
+    if ((suratBalasanErr || formErr) && suratBalasanAlert.value) {
+        nextTick(() => suratBalasanAlert.value?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    }
+});
+
+const handleApprove = () => {
+    if (!statusForm.surat_balasan) {
+        statusForm.clearErrors();
+        statusForm.setError('surat_balasan', 'Surat balasan wajib diunggah sebelum menerima pengajuan.');
         return;
     }
 
-    suratBalasanError.value = '';
-    router.patch(route('admin.pengajuan.status', pengajuan.value.id), {
-        status,
-        surat_balasan: suratBalasan.value,
-    }, { forceFormData: true });
+    statusForm.clearErrors();
+    statusForm.status = 'accepted';
+    submitStatus('accepted');
+};
+
+const handleReject = () => {
+    if (!statusForm.surat_balasan) {
+        statusForm.clearErrors();
+        statusForm.setError('surat_balasan', 'Surat balasan wajib diunggah sebelum menolak pengajuan.');
+        return;
+    }
+
+    statusForm.clearErrors();
+    statusForm.status = 'rejected';
+    submitStatus('rejected');
+};
+
+const submitStatus = (status) => {
+    statusForm.transform((data) => ({ ...data, status }));
+    statusForm.post(route('admin.pengajuan.status', pengajuan.value.id), {
+        forceFormData: true,
+        onSuccess: () => statusForm.reset(),
+    });
 };
 
 const selectSuratBalasan = (event) => {
-    suratBalasan.value = event.target.files?.[0] ?? null;
-    suratBalasanError.value = '';
+    const file = event.target.files?.[0] ?? null;
+    statusForm.clearErrors();
+    statusForm.surat_balasan = file;
+    if (file && file.size > 5 * 1024 * 1024) {
+        statusForm.surat_balasan = null;
+        statusForm.setError('surat_balasan', 'Ukuran file melebihi batas maksimal 5 MB.');
+        event.target.value = '';
+    }
 };
 
 const submitRevision = () => {
-    if (!catatanRevisi.value.trim()) {
+    if (!revisionForm.catatan_revisi.trim()) {
         revisionError.value = 'Catatan revisi wajib diisi.';
         return;
     }
     revisionError.value = '';
-    router.patch(route('admin.pengajuan.status', pengajuan.value.id), {
-        status: 'revision',
-        catatan_revisi: catatanRevisi.value,
-    }, {
+    revisionForm.patch(route('admin.pengajuan.status', pengajuan.value.id), {
         onSuccess: () => {
             showRevisionModal.value = false;
-            catatanRevisi.value = '';
-        }
+            revisionForm.reset();
+        },
     });
 };
 </script>
@@ -185,18 +225,31 @@ const submitRevision = () => {
                         <template v-if="pengajuan.status === 'pending'">
                             <div>
                                 <label class="field-label" for="surat_balasan">Surat Balasan</label>
-                                <input id="surat_balasan" type="file" accept=".pdf,.doc,.docx" class="field-input text-xs" @change="selectSuratBalasan" />
+                                <input id="surat_balasan" type="file" accept=".pdf,.doc,.docx" class="field-input text-xs" :class="{ '!border-red-500 !ring-2 !ring-red-500/25': suratBalasanError }" @change="selectSuratBalasan" :disabled="statusForm.processing" />
                                 <p class="mt-1 text-[11px] text-ink-500">PDF, DOC, atau DOCX maksimal 5 MB. Wajib untuk menerima atau menolak.</p>
                                 <p v-if="suratBalasanError" class="field-error">{{ suratBalasanError }}</p>
                             </div>
-                            <button @click="handleStatus('accepted')" class="btn-success w-full text-center text-sm">
-                                Terima Pengajuan
+                            <p class="text-[10px] leading-snug text-ink-500">
+                                * Surat Balasan wajib diunggah untuk aksi Terima atau Tolak.
+                            </p>
+                            <div v-if="suratBalasanError || formError" ref="suratBalasanAlert" class="flex items-start gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2.5" role="alert">
+                                <svg viewBox="0 0 24 24" class="mt-0.5 h-4 w-4 shrink-0 text-red-600" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <div class="text-xs font-medium text-red-700">
+                                    <p>{{ suratBalasanError }}</p>
+                                    <p v-if="formError">{{ formError }}</p>
+                                </div>
+                            </div>
+                            <button @click="handleApprove" :disabled="statusForm.processing" class="btn-success w-full text-center text-sm">
+                                {{ statusForm.processing ? 'Memproses...' : 'Terima Pengajuan' }}
                             </button>
-                            <button @click="showRevisionModal = true" class="btn-warning w-full text-center text-sm">
+                            <button @click="showRevisionModal = true" :disabled="statusForm.processing" class="btn-warning w-full text-center text-sm">
                                 Minta Revisi
                             </button>
-                            <button @click="handleStatus('rejected')" class="btn-danger w-full text-center text-sm">
-                                Tolak Pengajuan
+                            <button @click="handleReject" :disabled="statusForm.processing" class="btn-danger w-full text-center text-sm">
+                                {{ statusForm.processing ? 'Memproses...' : 'Tolak Pengajuan' }}
                             </button>
                         </template>
                         <div v-else class="rounded-lg bg-ink-100 p-3 text-center text-sm font-medium text-ink-700">
@@ -270,7 +323,7 @@ const submitRevision = () => {
                     <label class="field-label" for="catatan_revisi">Catatan / Alasan Revisi <span class="text-red-600">*</span></label>
                     <textarea
                         id="catatan_revisi"
-                        v-model="catatanRevisi"
+                        v-model="revisionForm.catatan_revisi"
                         rows="4"
                         class="field-input"
                         placeholder="Contoh: Surat pengantar belum ditandatangani oleh pimpinan kampus, mohon upload ulang surat bertanda tangan resmi."
@@ -280,7 +333,9 @@ const submitRevision = () => {
 
                 <div class="flex items-center justify-end gap-3">
                     <button type="button" @click="showRevisionModal = false" class="btn-secondary text-xs">Batal</button>
-                    <button type="button" @click="submitRevision" class="btn-warning text-xs">Kirim Permintaan Revisi</button>
+                    <button type="button" @click="submitRevision" :disabled="revisionForm.processing" class="btn-warning text-xs">
+                        {{ revisionForm.processing ? 'Mengirim...' : 'Kirim Permintaan Revisi' }}
+                    </button>
                 </div>
             </div>
         </div>

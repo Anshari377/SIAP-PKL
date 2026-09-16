@@ -1,6 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
 
@@ -23,14 +23,6 @@ const filteredPengajuan = computed(() => {
         return matchSearch && matchStatus;
     });
 });
-
-const handleAccept = (item) => {
-    router.patch(route('admin.pengajuan.status', item.id), { status: 'accepted' });
-};
-
-const handleReject = (item) => {
-    router.patch(route('admin.pengajuan.status', item.id), { status: 'rejected' });
-};
 </script>
 
 <template>
@@ -101,14 +93,6 @@ const handleReject = (item) => {
                                     <Link :href="route('admin.pengajuan.show', item.id)" class="btn-secondary px-3 py-1.5 text-xs">
                                         Detail
                                     </Link>
-                                    <template v-if="item.status === 'pending'">
-                                        <button @click="handleAccept(item)" class="btn-success px-3 py-1.5 text-xs">
-                                            Terima
-                                        </button>
-                                        <button @click="handleReject(item)" class="btn-danger px-3 py-1.5 text-xs">
-                                            Tolak
-                                        </button>
-                                    </template>
                                 </div>
                             </td>
                         </tr>
