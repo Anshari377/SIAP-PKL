@@ -48,8 +48,8 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                             <td class="px-4 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     
-                                    <a v-if="['accepted', 'rejected'].includes(item.status) && item.surat_balasan_url"
-                                        :href="item.surat_balasan_url"
+                                    <a v-if="['accepted', 'rejected'].includes(item.status) && item.surat_balasan_path"
+                                        :href="item.surat_balasan_path"
                                         target="_blank"
                                         class="btn-secondary px-3 py-1.5 text-xs"
                                     >

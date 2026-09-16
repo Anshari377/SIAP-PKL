@@ -15,10 +15,6 @@ class StatusPendaftaranController extends Controller
             ->latest()
             ->first();
 
-        if ($pendaftaran) {
-            $pendaftaran->setAttribute('surat_balasan_url', $pendaftaran->surat_balasan_url);
-        }
-
         return Inertia::render('Status/Index', [
             'activeNav' => 'pengajuan',
             'pendaftaran' => $pendaftaran,
