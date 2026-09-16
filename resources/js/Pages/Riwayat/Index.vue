@@ -46,12 +46,22 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                                 </span>
                             </td>
                             <td class="px-4 py-4 text-right">
-                                <Link
-                                    :href="route('status.index')"
-                                    :class="item.status === 'revision' ? 'btn-warning px-3 py-1.5 text-xs' : 'btn-secondary px-3 py-1.5 text-xs'"
-                                >
-                                    {{ item.status === 'revision' ? 'Upload Revisi' : 'Lihat Detail' }}
-                                </Link>
+                                <div class="flex items-center justify-end gap-2">
+                                    
+                                    <a v-if="['accepted', 'rejected'].includes(item.status) && item.surat_balasan_url"
+                                        :href="item.surat_balasan_url"
+                                        target="_blank"
+                                        class="btn-secondary px-3 py-1.5 text-xs"
+                                    >
+                                        Unduh Surat
+                                    </a>
+                                    <Link
+                                        :href="route('status.index')"
+                                        :class="item.status === 'revision' ? 'btn-warning px-3 py-1.5 text-xs' : 'btn-secondary px-3 py-1.5 text-xs'"
+                                    >
+                                        {{ item.status === 'revision' ? 'Upload Revisi' : 'Lihat Detail' }}
+                                    </Link>
+                                </div>
                             </td>
                         </tr>
                         <tr v-if="riwayat.length === 0">
@@ -65,4 +75,3 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
         </section>
     </AppLayout>
 </template>
-
