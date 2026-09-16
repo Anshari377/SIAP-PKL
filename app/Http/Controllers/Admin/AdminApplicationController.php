@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\Division;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class AdminApplicationController extends Controller
@@ -119,6 +122,76 @@ class AdminApplicationController extends Controller
         ]);
     }
 
+    public function walkInCreate(Request $request)
+    {
+        $divisions = $this->divisionQuery($request->user())
+            ->orderBy('nama')
+            ->get(['id', 'nama', 'quota']);
+
+        return Inertia::render('Admin/Peserta/WalkIn', [
+            'activeNav' => 'admin.peserta.walk-in',
+            'divisions' => $divisions,
+        ]);
+    }
+
+    public function walkInStore(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'nim' => ['nullable', 'string', 'max:50'],
+            'school' => ['required', 'string', 'max:255'],
+            'major' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:30'],
+            'division_id' => ['required', 'integer', 'exists:divisions,id'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+        ]);
+
+        $division = $this->divisionQuery($request->user())->findOrFail($data['division_id']);
+        $occupied = Application::query()
+            ->where('division_id', $division->id)
+            ->where('status', 'accepted')
+            ->where(function ($query) use ($data) {
+                $query->where('start_date', '<=', $data['end_date'])
+                    ->where('end_date', '>=', $data['start_date']);
+            })
+            ->withCount('members')
+            ->get()
+            ->sum(fn (Application $application) => max(1, $application->members_count));
+
+        abort_if($occupied >= $division->quota, 422, 'Kuota bidang penuh untuk periode tersebut.');
+
+        DB::transaction(function () use ($data, $division, $request) {
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => 'walkin+'.Str::uuid().'@pkl.local',
+                'password' => Str::random(40),
+                'agency_id' => $request->user()->agency_id,
+                'tipe_pendaftaran' => 'individu',
+            ]);
+
+            $application = Application::create([
+                'user_id' => $user->id,
+                'division_id' => $division->id,
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
+                'status' => 'accepted',
+                'is_walk_in' => true,
+                'consent_pdp' => true,
+            ]);
+
+            $application->members()->create([
+                'name' => $data['name'],
+                'nim' => $data['nim'] ?? null,
+                'school' => $data['school'],
+                'major' => $data['major'],
+                'phone' => $data['phone'],
+            ]);
+        });
+
+        return to_route('admin.peserta.index')->with('success', 'Peserta walk-in berhasil diregistrasikan.');
+    }
+
     private function queryFor($user)
     {
         $query = $user->agency_id
@@ -126,5 +199,12 @@ class AdminApplicationController extends Controller
             : Application::query()->whereHas('division', fn ($query) => $query->whereNull('agency_id'));
 
         return $query->excludeDummy();
+    }
+
+    private function divisionQuery($user)
+    {
+        return $user->agency_id
+            ? Division::query()->where('agency_id', $user->agency_id)
+            : Division::query()->whereNull('agency_id');
     }
 }

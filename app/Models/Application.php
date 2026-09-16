@@ -19,6 +19,7 @@ class Application extends Model
         'start_date',
         'end_date',
         'status',
+        'is_walk_in',
         'document_path',
         'consent_pdp',
         'catatan_revisi',
@@ -30,6 +31,7 @@ class Application extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'consent_pdp' => 'boolean',
+            'is_walk_in' => 'boolean',
         ];
     }
 

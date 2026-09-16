@@ -72,6 +72,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/pengajuan/{pengajuan}/status', [AdminApplicationController::class, 'updateStatus'])->name('pengajuan.status');
 
         Route::get('/peserta', [AdminApplicationController::class, 'participants'])->name('peserta.index');
+        Route::get('/peserta/walk-in/create', [AdminApplicationController::class, 'walkInCreate'])->name('peserta.walk-in.create');
+        Route::post('/peserta/walk-in', [AdminApplicationController::class, 'walkInStore'])->name('peserta.walk-in.store');
 
         Route::get('/profile', fn () => \Inertia\Inertia::render('Admin/Profile/Edit', ['activeNav' => 'admin.profile']))->name('profile.edit');
     });
