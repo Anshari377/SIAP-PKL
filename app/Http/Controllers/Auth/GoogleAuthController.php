@@ -41,19 +41,16 @@ class GoogleAuthController extends Controller
             ]);
         }
 
-        // Role assignment HANYA saat user baru dibuat DAN belum punya role
-        if ($isNewUser || $user->roles->isEmpty()) {
-            $invitation = AgencyInvitation::where('email', $user->email)
-                ->where('is_redeemed', false)
-                ->first();
+        $invitation = AgencyInvitation::where('email', $user->email)
+            ->where('is_redeemed', false)
+            ->first();
 
-            if ($invitation) {
-                $user->assignRole('agency_admin');
-                $user->update(['agency_id' => $invitation->agency_id]);
-                $invitation->update(['is_redeemed' => true]);
-            } else {
-                $user->assignRole('student');
-            }
+        if ($invitation) {
+            $user->syncRoles(['agency_admin']);
+            $user->update(['agency_id' => $invitation->agency_id]);
+            $invitation->update(['is_redeemed' => true]);
+        } elseif ($user->roles->isEmpty()) {
+            $user->syncRoles(['student']);
         }
 
         Auth::login($user);

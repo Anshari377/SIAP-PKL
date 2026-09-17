@@ -33,7 +33,7 @@ class AssignSuperAdmin extends Command
         }
 
         Role::findOrCreate('super_admin');
-        $user->assignRole('super_admin');
+        $user->syncRoles(['super_admin']);
 
         $this->info("Role 'super_admin' berhasil di-assign ke {$user->name} ({$user->email}).");
 
