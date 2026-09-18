@@ -47,6 +47,28 @@ const selectedDivision = computed(() => {
     return props.divisions.find((d) => String(d.id) === String(form.division_id)) || null;
 });
 
+const sisaKuota = computed(() => {
+    if (!selectedDivision.value) return 0;
+    return Number(selectedDivision.value.kuota_sisa ?? selectedDivision.value.kuota ?? 0);
+});
+
+const anggotaBatas = computed(() => Math.max(0, sisaKuota.value - 1));
+
+const canAddMember = computed(() => {
+    if (form.tipe !== 'kelompok') return false;
+    if (!selectedDivision.value) return true;
+    return members.value.length < anggotaBatas.value;
+});
+
+const quotaLimitMessage = computed(() => {
+    if (form.tipe !== 'kelompok') return '';
+    if (!selectedDivision.value) return '';
+    if (members.value.length >= anggotaBatas.value) {
+        return `Sisa kuota bidang ini hanya ${sisaKuota.value} orang, tidak bisa menambah anggota lagi.`;
+    }
+    return '';
+});
+
 const formatReadableDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -393,13 +415,17 @@ const submit = () => {
                             <p class="text-xs text-ink-500">Tambahkan anggota lain selain ketua kelompok.</p>
                         </div>
                     </div>
-                    <button type="button" class="btn-secondary shrink-0" @click="addMember">
+                    <button type="button" class="btn-secondary shrink-0 disabled:cursor-not-allowed disabled:opacity-50" :disabled="!canAddMember" @click="addMember">
                         <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
                         + Tambah Anggota
                     </button>
                 </div>
+
+                <p v-if="quotaLimitMessage" class="mb-4 rounded-lg bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-700">
+                    {{ quotaLimitMessage }}
+                </p>
 
                 <p v-if="frontErrors.members || form.errors.members" class="mb-4 rounded-lg bg-red-50 px-4 py-2.5 text-xs font-medium text-red-600">
                     {{ frontErrors.members || form.errors.members }}

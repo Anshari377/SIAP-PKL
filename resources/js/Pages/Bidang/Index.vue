@@ -32,6 +32,17 @@ const hasActiveFilter = computed(
     () => search.value !== '' || instansi.value !== '' || status.value !== '' || tanggalMulai.value !== '' || tanggalSelesai.value !== ''
 );
 
+const groupedDivisions = computed(() => {
+    const groups = {};
+    for (const item of props.divisions) {
+        const key = item.instansi || 'Instansi Lainnya';
+        (groups[key] = groups[key] || []).push(item);
+    }
+    return Object.keys(groups)
+        .sort((a, b) => a.localeCompare(b))
+        .map((instansi) => ({ instansi, items: groups[instansi] }));
+});
+
 const statusOptions = [
     { value: '', label: 'Semua Status' },
     { value: 'tersedia', label: 'Tersedia (>50% slot)' },
@@ -202,15 +213,29 @@ const resetFilters = () => {
                 </div>
             </form>
 
-            <!-- Grid Bidang -->
-            <div v-if="divisions.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                <BidangCard
-                    v-for="item in divisions"
-                    :key="item.id"
-                    :item="item"
-                    :detail-href="route('bidang.show', item.slug)"
-                    :primary="{ label: 'Daftar Sekarang', href: route('pengajuan.index', { division: item.id }) }"
-                />
+            <!-- Bidang PKL Dikelompokkan per Instansi -->
+            <div v-if="divisions.length > 0" class="space-y-12">
+                <section v-for="group in groupedDivisions" :key="group.instansi">
+                    <div class="mb-5 flex items-center gap-3">
+                        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-forest-600/10 text-forest-700">
+                            <Building2 :size="20" :stroke-width="1.8" />
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="font-display text-lg font-bold text-ink-900">{{ group.instansi }}</h3>
+                            <p class="text-xs text-ink-500">{{ group.items.length }} bidang PKL</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                        <BidangCard
+                            v-for="item in group.items"
+                            :key="item.id"
+                            :item="item"
+                            :detail-href="route('bidang.show', item.slug)"
+                            :primary="{ label: 'Daftar Sekarang', href: route('pengajuan.index', { division: item.id }) }"
+                        />
+                    </div>
+                </section>
             </div>
 
             <!-- Empty State -->

@@ -21,7 +21,6 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                         <tr>
                             <th class="px-4 py-3 w-12">No</th>
                             <th class="px-4 py-3">Bidang</th>
-                            <th class="px-4 py-3">Posisi</th>
                             <th class="px-4 py-3">Instansi</th>
                             <th class="px-4 py-3">Tanggal Daftar</th>
                             <th class="px-4 py-3">Status Akhir</th>
@@ -37,7 +36,6 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                                     Catatan Revisi: {{ item.catatan_revisi }}
                                 </p>
                             </td>
-                            <td class="px-4 py-4 font-medium text-ink-800">{{ item.posisi }}</td>
                             <td class="px-4 py-4 text-ink-700">{{ item.instansi }}</td>
                             <td class="px-4 py-4 text-ink-500">{{ formatDate(item.created_at) }}</td>
                             <td class="px-4 py-4">
@@ -65,7 +63,7 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                             </td>
                         </tr>
                         <tr v-if="riwayat.length === 0">
-                            <td colspan="7" class="px-4 py-10 text-center text-ink-500">
+                            <td colspan="6" class="px-4 py-10 text-center text-ink-500">
                                 Belum ada riwayat pendaftaran.
                             </td>
                         </tr>

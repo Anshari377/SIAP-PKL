@@ -84,39 +84,34 @@ const statusMeta = (item) => {
 <template>
     <article class="glass-card flex flex-col gap-5 rounded-3xl p-6 transition hover:-translate-y-1 hover:border-forest-500/40 hover:shadow-card">
         <!-- Header -->
-        <div class="flex items-start justify-between gap-4">
-            <div class="min-w-0">
-                <div class="mb-3 inline-grid h-12 w-12 place-items-center rounded-2xl bg-forest-600/10 text-forest-700">
-                    <component :is="iconFor(item.kategori)" :size="24" :stroke-width="1.8" />
-                </div>
-                <Link
-                    :href="detailHref"
-                    class="font-display text-lg font-bold leading-snug text-ink-900 transition hover:text-forest-700"
-                >
-                    {{ item.nama }}
-                </Link>
-                <p class="mt-1 flex items-center gap-1.5 text-sm text-ink-500">
-                    <Building2 :size="14" :stroke-width="2" class="shrink-0" />
-                    {{ item.instansi }}
-                </p>
-                <p v-if="instansiLocation(item).alamat" class="mt-1 flex items-start gap-1.5 text-xs leading-relaxed text-ink-500">
-                    <MapPin :size="14" :stroke-width="2" class="mt-0.5 shrink-0" />
-                    {{ instansiLocation(item).alamat }}
-                </p>
-                <a
-                    v-if="mapsUrl(instansiLocation(item))"
-                    :href="mapsUrl(instansiLocation(item))"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-forest-700 hover:underline"
-                >
-                    <MapPin :size="13" :stroke-width="2" />
-                    Lihat di Peta
-                </a>
+        <div class="flex flex-col items-center text-center">
+            <div class="mb-4 inline-grid h-14 w-14 place-items-center rounded-2xl bg-forest-600/10 text-forest-700">
+                <component :is="iconFor(item.kategori)" :size="26" :stroke-width="1.8" />
             </div>
-            <span :class="['badge', statusMeta(item).badge]" class="whitespace-nowrap">
-                {{ statusMeta(item).label }}
-            </span>
+            <Link
+                :href="detailHref"
+                class="font-display text-lg font-bold leading-snug text-ink-900 transition hover:text-forest-700"
+            >
+                {{ item.nama }}
+            </Link>
+            <p class="mt-1.5 flex items-center justify-center gap-1.5 text-sm text-ink-500">
+                <Building2 :size="14" :stroke-width="2" class="shrink-0" />
+                {{ item.instansi }}
+            </p>
+            <p v-if="instansiLocation(item).alamat" class="mt-2 flex items-start justify-center gap-1.5 text-xs leading-relaxed text-ink-500">
+                <MapPin :size="14" :stroke-width="2" class="mt-0.5 shrink-0" />
+                {{ instansiLocation(item).alamat }}
+            </p>
+            <a
+                v-if="mapsUrl(instansiLocation(item))"
+                :href="mapsUrl(instansiLocation(item))"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-forest-700 hover:underline"
+            >
+                <MapPin :size="13" :stroke-width="2" />
+                Lihat di Peta
+            </a>
         </div>
 
         <!-- Progress Kuota -->
