@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Application;
 use App\Models\Division;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +14,14 @@ class AdminBidangController extends Controller
 {
     public function index()
     {
+        Application::syncCompletedApplications();
+
         $divisions = $this->withQuota(
             $this->queryFor(request()->user())
-                ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
+                ->with([
+                    'positions',
+                    'applications' => fn ($query) => $query->active()->excludeDummy()->withCount('members'),
+                ])
                 ->latest()
                 ->get(),
         );
@@ -53,9 +59,14 @@ class AdminBidangController extends Controller
 
     public function show($bidang)
     {
+        Application::syncCompletedApplications();
+
         $division = $this->withQuota(
             $this->queryFor(request()->user())
-                ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
+                ->with([
+                    'positions',
+                    'applications' => fn ($query) => $query->active()->excludeDummy()->withCount('members'),
+                ])
                 ->findOrFail($bidang),
         );
 
@@ -113,13 +124,24 @@ class AdminBidangController extends Controller
     private function setQuotaAttributes(Division $division): Division
     {
         $quota = (int) $division->quota;
-        $terisi = (int) ($division->accepted_count ?? 0);
+        $terisi = $division->relationLoaded('applications')
+            ? $division->applications->sum(fn (Application $app) => max(1, $app->members_count ?? 1))
+            : (int) ($division->accepted_count ?? 0);
+
+        // Kuota terisi aktif tidak boleh melebihi kuota untuk tampilan kuota
+        $terisiTotal = min($quota, $terisi);
+        $sisa = max(0, $quota - $terisiTotal);
+        $sisaPercent = $quota > 0 ? ($sisa / $quota) * 100 : 0;
+        $persentase = $quota > 0 ? (int) round(($terisiTotal / $quota) * 100) : 0;
 
         $division->setAttribute('kuota_total', $quota);
-        $division->setAttribute('terisi_total', $terisi);
-        $sisa = max(0, $quota - $terisi);
-        $sisaPercent = $quota > 0 ? ($sisa / $quota) * 100 : 0;
+        $division->setAttribute('terisi_total', $terisiTotal);
+        $division->setAttribute('sisa_total', $sisa);
+        $division->setAttribute('persentase', $persentase);
         $division->setAttribute('status', $sisa <= 0 ? 'penuh' : ($sisaPercent > 50 ? 'tersedia' : ($sisaPercent >= 20 ? 'menipis' : 'hampir-penuh')));
+        $division->setAttribute('jurusan_tags', $division->relationLoaded('positions')
+            ? $division->positions->pluck('jurusan')->flatten()->unique()->take(5)->values()
+            : collect());
 
         return $division;
     }

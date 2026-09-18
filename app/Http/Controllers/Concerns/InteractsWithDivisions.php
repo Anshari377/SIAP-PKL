@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Concerns;
 
+use App\Models\Application;
 use App\Models\Division;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -10,30 +11,35 @@ trait InteractsWithDivisions
 {
     private function divisions(Request $request): Collection
     {
+        Application::syncCompletedApplications();
+
         $tanggalMulai = $request->input('tanggal_mulai');
         $tanggalSelesai = $request->input('tanggal_selesai');
 
         return Division::query()
             ->with('positions')
-            ->withCount(['applications as accepted_count' => fn ($query) => $this->applyAcceptedQuotaFilter($query, $tanggalMulai, $tanggalSelesai)])
+            ->with(['applications' => fn ($query) => $this->applyAcceptedQuotaFilter($query, $tanggalMulai, $tanggalSelesai)->withCount('members')])
             ->get()
             ->map(fn (Division $division) => $this->withQuota($division));
     }
 
     private function applyAcceptedQuotaFilter($query, ?string $tanggalMulai = null, ?string $tanggalSelesai = null)
     {
-        $query->where('status', 'accepted')->excludeDummy();
+        $query->excludeDummy();
 
         if ($tanggalMulai && $tanggalSelesai) {
-            $query->where('start_date', '<=', $tanggalSelesai)
+            $query->where('status', 'accepted')
+                ->where('start_date', '<=', $tanggalSelesai)
                 ->where('end_date', '>=', $tanggalMulai);
         } elseif ($tanggalMulai) {
-            $query->where('end_date', '>=', $tanggalMulai);
+            $query->where('status', 'accepted')
+                ->where('end_date', '>=', $tanggalMulai);
         } elseif ($tanggalSelesai) {
-            $query->where('start_date', '<=', $tanggalSelesai)
+            $query->where('status', 'accepted')
+                ->where('start_date', '<=', $tanggalSelesai)
                 ->where('end_date', '>=', now()->toDateString());
         } else {
-            $query->where('end_date', '>=', now()->toDateString());
+            $query->currentlyActive();
         }
 
         return $query;
@@ -42,12 +48,15 @@ trait InteractsWithDivisions
     private function withQuota(Division $division): Division
     {
         $quota = (int) $division->quota;
-        $terisi = (int) ($division->accepted_count ?? 0);
-        $sisa = max(0, $quota - $terisi);
-        $persentase = $quota > 0 ? (int) round(($terisi / $quota) * 100) : 0;
+        $terisi = $division->relationLoaded('applications')
+            ? $division->applications->sum(fn (Application $app) => max(1, $app->members_count ?? 1))
+            : (int) ($division->accepted_count ?? 0);
+        $terisiTotal = min($quota, $terisi);
+        $sisa = max(0, $quota - $terisiTotal);
+        $persentase = $quota > 0 ? (int) round(($terisiTotal / $quota) * 100) : 0;
 
         $division->setAttribute('kuota_total', $quota);
-        $division->setAttribute('terisi_total', $terisi);
+        $division->setAttribute('terisi_total', $terisiTotal);
         $division->setAttribute('sisa_total', $sisa);
         $division->setAttribute('persentase', $persentase);
         $division->setAttribute('status', $this->statusKey($sisa, $quota));

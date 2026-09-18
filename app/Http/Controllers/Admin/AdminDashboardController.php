@@ -12,6 +12,8 @@ class AdminDashboardController extends Controller
 {
     public function __invoke(Request $request)
     {
+        Application::syncCompletedApplications();
+
         $divisionQuery = $request->user()->agency_id
             ? Division::where('agency_id', $request->user()->agency_id)
             : Division::whereNull('agency_id');
@@ -26,7 +28,7 @@ class AdminDashboardController extends Controller
                 'total_bidang' => (clone $divisionQuery)->count(),
                 'pengajuan_baru' => (clone $applicationQuery)->where('status', 'pending')->count(),
                 'menunggu_verifikasi' => (clone $applicationQuery)->where('status', 'pending')->count(),
-                'peserta_aktif' => (clone $applicationQuery)->where('status', 'accepted')->count(),
+                'peserta_aktif' => (clone $applicationQuery)->currentlyActive()->count(),
             ],
             'pengajuanTerbaru' => (clone $applicationQuery)
                 ->with(['user', 'division'])
@@ -34,10 +36,15 @@ class AdminDashboardController extends Controller
                 ->limit(5)
                 ->get(),
             'bidangAktif' => (clone $divisionQuery)
-                ->withCount(['applications as terisi' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
+                ->with(['applications' => fn ($query) => $query->currentlyActive()->excludeDummy()->withCount('members')])
                 ->latest()
                 ->limit(5)
-                ->get(),
+                ->get()
+                ->map(function (Division $div) {
+                    $terisi = $div->applications->sum(fn ($app) => max(1, $app->members_count ?? 1));
+                    $div->terisi = min((int) $div->quota, $terisi);
+                    return $div;
+                }),
         ]);
     }
 }

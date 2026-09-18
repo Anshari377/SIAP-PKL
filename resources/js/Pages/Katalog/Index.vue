@@ -28,6 +28,20 @@ const status = ref(props.filters.status || '');
 const tanggalMulai = ref(props.filters.tanggal_mulai || '');
 const tanggalSelesai = ref(props.filters.tanggal_selesai || '');
 
+const todayString = computed(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+});
+
+const minTanggalMulai = computed(() => todayString.value);
+const minTanggalSelesai = computed(() => {
+    if (tanggalMulai.value) return tanggalMulai.value >= todayString.value ? tanggalMulai.value : todayString.value;
+    return todayString.value;
+});
+
 const hasActiveFilter = computed(
     () => search.value !== '' || instansi.value !== '' || status.value !== '' || tanggalMulai.value !== '' || tanggalSelesai.value !== ''
 );
@@ -165,6 +179,7 @@ const resetFilters = () => {
                             <input
                                 v-model="tanggalMulai"
                                 type="date"
+                                :min="minTanggalMulai"
                                 class="field-input pl-9 w-full text-xs"
                                 title="Tanggal Mulai PKL"
                             />
@@ -178,7 +193,7 @@ const resetFilters = () => {
                             <input
                                 v-model="tanggalSelesai"
                                 type="date"
-                                :min="tanggalMulai"
+                                :min="minTanggalSelesai"
                                 class="field-input pl-9 w-full text-xs"
                                 title="Tanggal Selesai PKL"
                             />

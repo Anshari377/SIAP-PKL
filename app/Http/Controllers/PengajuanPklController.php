@@ -13,6 +13,8 @@ class PengajuanPklController extends Controller
 {
     public function index(Request $request)
     {
+        Application::syncCompletedApplications();
+
         $activeApplication = Application::where('user_id', $request->user()->id)
             ->whereIn('status', ['pending', 'accepted', 'revision'])
             ->with('division')
@@ -24,17 +26,20 @@ class PengajuanPklController extends Controller
             ->get()
             ->map(function (Division $division) {
                 $occupied = Application::where('division_id', $division->id)
-                    ->where('status', 'accepted')
+                    ->active()
                     ->excludeDummy()
                     ->withCount('members')
                     ->get()
-                    ->sum(fn (Application $app) => 1 + $app->members_count);
+                    ->sum(fn (Application $app) => max(1, $app->members_count));
+
+                $occupied = min($division->quota, $occupied);
 
                 return [
                     'id' => $division->id,
                     'nama' => $division->nama,
                     'instansi' => $division->instansi,
                     'kuota' => $division->quota,
+                    'kuota_terisi' => $occupied,
                     'kuota_sisa' => max(0, $division->quota - $occupied),
                 ];
             });
@@ -67,8 +72,8 @@ class PengajuanPklController extends Controller
 
         $data = $request->validate([
             'division_id' => ['required', 'integer', 'exists:divisions,id'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'start_date' => ['required', 'date', 'after_or_equal:today'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date', 'after_or_equal:today'],
             'tipe' => ['required', 'in:individu,kelompok'],
             'ketua.name' => ['required', 'string', 'max:255'],
             'ketua.nim' => ['nullable', 'string', 'max:50'],
@@ -95,7 +100,7 @@ class PengajuanPklController extends Controller
         ]);
 
         $overlappingApps = Application::where('division_id', $divisionId)
-            ->where('status', 'accepted')
+            ->active()
             ->excludeDummy()
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->where('start_date', '<=', $endDate)
@@ -105,7 +110,7 @@ class PengajuanPklController extends Controller
             ->get();
 
         $currentOccupied = $overlappingApps->sum(function (Application $app) {
-            return 1 + $app->members_count;
+            return max(1, $app->members_count);
         });
 
         $division = Division::findOrFail($divisionId);
@@ -188,16 +193,21 @@ class PengajuanPklController extends Controller
     {
         $request->validate([
             'division_id' => ['required', 'integer', 'exists:divisions,id'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'start_date' => ['required', 'date', 'after_or_equal:today'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date', 'after_or_equal:today'],
         ]);
+
+        Application::syncCompletedApplications();
 
         $divisionId = $request->input('division_id');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
+        $division = Division::findOrFail($divisionId);
+
+        // Hitung berapa slot yang terisi di periode yang diminta (overlap)
         $overlappingApps = Application::where('division_id', $divisionId)
-            ->where('status', 'accepted')
+            ->active()
             ->excludeDummy()
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->where('start_date', '<=', $endDate)
@@ -206,19 +216,20 @@ class PengajuanPklController extends Controller
             ->withCount('members')
             ->get();
 
-        $currentOccupied = $overlappingApps->sum(function (Application $app) {
-            return 1 + $app->members_count;
-        });
-
-        $division = Division::findOrFail($divisionId);
+        $currentOccupied = $overlappingApps->sum(fn (Application $app) => max(1, $app->members_count));
         $availableSlots = $division->quota - $currentOccupied;
 
         if ($availableSlots >= 1) {
-            return response()->json(['available' => true]);
+            return response()->json([
+                'available' => true,
+                'slot_tersedia' => $availableSlots,
+                'slot_terisi_periode' => $currentOccupied,
+                'kuota_total' => $division->quota,
+            ]);
         }
 
         $earliestEndDate = Application::where('division_id', $divisionId)
-            ->where('status', 'accepted')
+            ->active()
             ->excludeDummy()
             ->where('end_date', '>=', $startDate)
             ->min('end_date');
@@ -231,6 +242,9 @@ class PengajuanPklController extends Controller
             'available' => false,
             'message' => 'Kuota penuh untuk periode ini',
             'next_available_date' => $nextAvailableDate,
+            'slot_tersedia' => 0,
+            'slot_terisi_periode' => $currentOccupied,
+            'kuota_total' => $division->quota,
         ]);
     }
 }

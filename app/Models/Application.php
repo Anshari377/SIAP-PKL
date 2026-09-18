@@ -64,4 +64,35 @@ class Application extends Model
     {
         return $query->whereHas('user', fn ($q) => $q->where('email', 'not like', 'demo.%@pkl.test'));
     }
+
+    public function scopeActive($query)
+    {
+        return $query
+            ->where('status', 'accepted')
+            ->whereNotNull('end_date')
+            ->whereDate('end_date', '>=', now()->toDateString());
+    }
+
+    public function scopeCurrentlyActive($query)
+    {
+        return $query
+            ->where('status', 'accepted')
+            ->whereNotNull('start_date')
+            ->whereNotNull('end_date')
+            ->whereDate('start_date', '<=', now()->toDateString())
+            ->whereDate('end_date', '>=', now()->toDateString());
+    }
+
+    public static function syncCompletedApplications(): void
+    {
+        static::query()
+            ->where('status', 'accepted')
+            ->whereNotNull('end_date')
+            ->whereDate('end_date', '<=', now()->toDateString())
+            ->get()
+            ->filter(fn (self $app) => $app->end_date?->isPast())
+            ->each(function (self $app) {
+                $app->update(['status' => 'completed']);
+            });
+    }
 }

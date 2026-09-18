@@ -30,6 +30,43 @@ const form = useForm({
     consent_pdp: false,
 });
 
+const formatDateInput = (dateValue) => {
+    if (!dateValue) return '';
+
+    const date = new Date(`${dateValue}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+};
+
+const todayString = computed(() => {
+    const now = new Date();
+    return formatDateInput(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
+});
+
+const minStartDate = computed(() => todayString.value);
+const minEndDate = computed(() => {
+    if (form.start_date) return form.start_date >= todayString.value ? form.start_date : todayString.value;
+    return todayString.value;
+});
+
+const sanitizePastDate = (value) => {
+    if (!value) return value;
+
+    const selected = new Date(`${value}T00:00:00`);
+    const today = new Date(`${todayString.value}T00:00:00`);
+
+    if (selected < today) {
+        return todayString.value;
+    }
+
+    return value;
+};
+
 const members = ref([]);
 const frontErrors = ref({});
 const availability = ref(null);
@@ -113,6 +150,19 @@ watch(
     () => [form.division_id, form.start_date, form.end_date],
     () => {
         availability.value = null;
+
+        if (form.start_date) {
+            form.start_date = sanitizePastDate(form.start_date);
+        }
+
+        if (form.end_date) {
+            form.end_date = sanitizePastDate(form.end_date);
+        }
+
+        if (form.start_date && form.end_date && form.end_date < form.start_date) {
+            form.end_date = form.start_date;
+        }
+
         if (form.division_id && form.start_date && form.end_date && form.end_date >= form.start_date) {
             checkAvailability();
         }
@@ -156,7 +206,13 @@ const validateFrontend = () => {
 
     if (!form.division_id) errors.division_id = 'Pilih bidang PKL terlebih dahulu.';
     if (!form.start_date) errors.start_date = 'Tanggal mulai wajib diisi.';
+    if (form.start_date && form.start_date < todayString.value) {
+        errors.start_date = 'Tanggal mulai PKL tidak boleh sebelum hari ini.';
+    }
     if (!form.end_date) errors.end_date = 'Tanggal selesai wajib diisi.';
+    if (form.end_date && form.end_date < todayString.value) {
+        errors.end_date = 'Tanggal selesai PKL tidak boleh sebelum hari ini.';
+    }
     if (invalidDateRange.value) errors.end_date = 'Tanggal selesai tidak boleh sebelum tanggal mulai.';
 
     if (!form.tipe) errors.tipe = 'Pilih tipe pendaftaran.';
@@ -292,8 +348,7 @@ const submit = () => {
                         <select id="division_id" v-model="form.division_id" class="field-input">
                             <option value="">-- Pilih Bidang PKL --</option>
                             <option v-for="division in divisions" :key="division.id" :value="String(division.id)">
-                                {{ division.nama }} — {{ division.instansi }} (kuota sisa {{ division.kuota_sisa }}
-                                dari {{ division.kuota }})
+                                {{ division.nama }} — {{ division.instansi }} (kuota {{ division.kuota_terisi ?? (division.kuota - division.kuota_sisa) }}/{{ division.kuota }})
                             </option>
                         </select>
                         <p v-if="frontErrors.division_id || form.errors.division_id" class="mt-1.5 text-xs font-medium text-red-600">
@@ -303,7 +358,14 @@ const submit = () => {
 
                     <div>
                         <label class="field-label" for="start_date">Tanggal Mulai</label>
-                        <input id="start_date" v-model="form.start_date" type="date" class="field-input" />
+                        <input
+                            id="start_date"
+                            v-model="form.start_date"
+                            type="date"
+                            :min="minStartDate"
+                            @change="form.start_date = sanitizePastDate(form.start_date)"
+                            class="field-input"
+                        />
                         <p v-if="frontErrors.start_date || form.errors.start_date" class="mt-1.5 text-xs font-medium text-red-600">
                             {{ frontErrors.start_date || form.errors.start_date }}
                         </p>
@@ -311,7 +373,14 @@ const submit = () => {
 
                     <div>
                         <label class="field-label" for="end_date">Tanggal Selesai</label>
-                        <input id="end_date" v-model="form.end_date" type="date" class="field-input" />
+                        <input
+                            id="end_date"
+                            v-model="form.end_date"
+                            type="date"
+                            :min="minEndDate"
+                            @change="form.end_date = sanitizePastDate(form.end_date)"
+                            class="field-input"
+                        />
                         <p v-if="frontErrors.end_date || form.errors.end_date" class="mt-1.5 text-xs font-medium text-red-600">
                             {{ frontErrors.end_date || form.errors.end_date }}
                         </p>
@@ -328,13 +397,19 @@ const submit = () => {
 
                         <div
                             v-else-if="availability?.available === true"
-                            class="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
+                            class="space-y-2"
                         >
-                            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                            Kuota tersedia untuk periode
-                            {{ formatReadableDate(form.start_date) }} – {{ formatReadableDate(form.end_date) }}.
+                            <div class="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                                <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>
+                                    Kuota tersedia untuk periode
+                                    <strong>{{ formatReadableDate(form.start_date) }} – {{ formatReadableDate(form.end_date) }}</strong>.
+                                    Slot terisi pada periode ini: <strong>{{ availability.slot_terisi_periode }}/{{ availability.kuota_total }}</strong>,
+                                    tersisa <strong>{{ availability.slot_tersedia }}</strong> slot.
+                                </span>
+                            </div>
                         </div>
 
                         <div
@@ -346,7 +421,8 @@ const submit = () => {
                                 <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                             </svg>
                             <span>
-                                {{ availability.message }} untuk {{ selectedDivision?.nama ?? 'bidang terpilih' }}.
+                                Seluruh <strong>{{ availability.kuota_total }} slot</strong> sudah terisi penuh
+                                untuk periode ini (terisi: {{ availability.slot_terisi_periode }}).
                                 Periode berikutnya tersedia mulai
                                 <strong>{{ formatReadableDate(availability.next_available_date) }}</strong>.
                                 Ubah rentang tanggal atau bidang untuk melanjutkan.

@@ -26,7 +26,7 @@ class HomeController extends Controller
                 'pendaftaran' => Application::where('user_id', $userId)->count(),
                 'menunggu_verifikasi' => Application::where('user_id', $userId)
                     ->whereIn('status', ['pending', 'revision'])->count(),
-                'diterima' => Application::where('user_id', $userId)->where('status', 'accepted')->count(),
+                'diterima' => Application::where('user_id', $userId)->active()->count(),
             ],
             'pendaftaranAktif' => $pengajuanAktif ? [
                 'judul' => $pengajuanAktif->division?->nama ?? 'Pengajuan PKL',

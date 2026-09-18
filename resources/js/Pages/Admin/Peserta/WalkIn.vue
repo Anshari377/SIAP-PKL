@@ -1,5 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 defineProps({
@@ -15,6 +16,20 @@ const form = useForm({
     division_id: '',
     start_date: '',
     end_date: '',
+});
+
+const todayString = computed(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+});
+
+const minStartDate = computed(() => todayString.value);
+const minEndDate = computed(() => {
+    if (form.start_date) return form.start_date >= todayString.value ? form.start_date : todayString.value;
+    return todayString.value;
 });
 
 const submitForm = () => form.post(route('admin.peserta.walk-in.store'));
@@ -69,12 +84,12 @@ const submitForm = () => form.post(route('admin.peserta.walk-in.store'));
                         </div>
                         <div>
                             <label class="field-label" for="start_date">Tanggal Mulai</label>
-                            <input id="start_date" v-model="form.start_date" type="date" required class="field-input" />
+                            <input id="start_date" v-model="form.start_date" type="date" :min="minStartDate" required class="field-input" />
                             <p v-if="form.errors.start_date" class="field-error">{{ form.errors.start_date }}</p>
                         </div>
                         <div>
                             <label class="field-label" for="end_date">Tanggal Selesai</label>
-                            <input id="end_date" v-model="form.end_date" type="date" required class="field-input" />
+                            <input id="end_date" v-model="form.end_date" type="date" :min="minEndDate" required class="field-input" />
                             <p v-if="form.errors.end_date" class="field-error">{{ form.errors.end_date }}</p>
                         </div>
                     </div>

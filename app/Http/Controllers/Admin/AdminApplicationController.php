@@ -51,6 +51,32 @@ class AdminApplicationController extends Controller
             'surat_balasan' => ['required_if:status,accepted', 'required_if:status,rejected', 'nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
         ]);
 
+        if ($data['status'] === 'accepted') {
+            Application::syncCompletedApplications();
+
+            $division = $application->division;
+            $startDate = $application->start_date?->toDateString();
+            $endDate = $application->end_date?->toDateString();
+
+            if ($division && $startDate && $endDate) {
+                $occupied = Application::where('division_id', $division->id)
+                    ->where('id', '!=', $application->id)
+                    ->active()
+                    ->where('start_date', '<=', $endDate)
+                    ->where('end_date', '>=', $startDate)
+                    ->withCount('members')
+                    ->get()
+                    ->sum(fn ($app) => max(1, $app->members_count));
+
+                $needed = max(1, $application->members()->count());
+                if ($occupied + $needed > $division->quota) {
+                    return back()->withErrors([
+                        'status' => "Kuota bidang {$division->nama} sudah penuh untuk periode tersebut (Terisi: {$occupied}/{$division->quota}).",
+                    ]);
+                }
+            }
+        }
+
         DB::transaction(function () use ($application, $data, $request) {
             $updateData = ['status' => $data['status']];
             if ($data['status'] === 'revision') {
@@ -88,8 +114,10 @@ class AdminApplicationController extends Controller
 
     public function participants(Request $request)
     {
+        Application::syncCompletedApplications();
+
         $applications = $this->queryFor($request->user())
-            ->where('status', 'accepted')
+            ->whereIn('status', ['accepted', 'completed'])
             ->with(['user.agency', 'division', 'members'])
             ->latest()
             ->get();
@@ -100,6 +128,7 @@ class AdminApplicationController extends Controller
             if ($members->isEmpty()) {
                 return [[
                     'id' => "application-{$application->id}",
+                    'application_id' => $application->id,
                     'nama' => $application->user?->name ?? '-',
                     'nim' => '-',
                     'instansi' => $application->user?->agency?->name ?? '-',
@@ -107,12 +136,14 @@ class AdminApplicationController extends Controller
                     'posisi' => 'Tidak ditentukan',
                     'tanggal_mulai' => $application->start_date?->toDateString(),
                     'tanggal_selesai' => $application->end_date?->toDateString(),
-                    'status' => $application->end_date?->isPast() ? 'completed' : 'accepted',
+                    'tanggal_pengajuan' => $application->created_at?->format('d M Y'),
+                    'status' => $application->status,
                 ]];
             }
 
             return $members->map(fn ($member) => [
                 'id' => $member->id,
+                'application_id' => $application->id,
                 'nama' => $member->name,
                 'nim' => $member->nim ?? '-',
                 'instansi' => $member->school,
@@ -120,7 +151,8 @@ class AdminApplicationController extends Controller
                 'posisi' => 'Tidak ditentukan',
                 'tanggal_mulai' => $application->start_date?->toDateString(),
                 'tanggal_selesai' => $application->end_date?->toDateString(),
-                'status' => $application->end_date?->isPast() ? 'completed' : 'accepted',
+                'tanggal_pengajuan' => $application->created_at?->format('d M Y'),
+                'status' => $application->status,
             ]);
         })->values();
 
@@ -137,8 +169,26 @@ class AdminApplicationController extends Controller
         ]);
     }
 
+    public function completeParticipant(Request $request, Application $application)
+    {
+        $app = $this->queryFor($request->user())->findOrFail($application->id);
+
+        abort_unless($app->status === 'accepted', 422, 'Hanya peserta dengan status aktif yang dapat diselesaikan.');
+
+        DB::transaction(function () use ($app) {
+            $app->update([
+                'status' => 'completed',
+                'end_date' => $app->end_date && $app->end_date->isPast() ? $app->end_date : now()->toDateString(),
+            ]);
+        });
+
+        return back()->with('success', 'Peserta PKL berhasil diselesaikan. Kuota bidang telah diperbarui.');
+    }
+
     public function walkInCreate(Request $request)
     {
+        Application::syncCompletedApplications();
+
         $divisions = $this->divisionQuery($request->user())
             ->orderBy('nama')
             ->get(['id', 'nama', 'quota']);
@@ -158,14 +208,16 @@ class AdminApplicationController extends Controller
             'major' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:30'],
             'division_id' => ['required', 'integer', 'exists:divisions,id'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'start_date' => ['required', 'date', 'after_or_equal:today'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date', 'after_or_equal:today'],
         ]);
+
+        Application::syncCompletedApplications();
 
         $division = $this->divisionQuery($request->user())->findOrFail($data['division_id']);
         $occupied = Application::query()
             ->where('division_id', $division->id)
-            ->where('status', 'accepted')
+            ->active()
             ->where(function ($query) use ($data) {
                 $query->where('start_date', '<=', $data['end_date'])
                     ->where('end_date', '>=', $data['start_date']);
@@ -174,7 +226,11 @@ class AdminApplicationController extends Controller
             ->get()
             ->sum(fn (Application $application) => max(1, $application->members_count));
 
-        abort_if($occupied >= $division->quota, 422, 'Kuota bidang penuh untuk periode tersebut.');
+        if ($occupied >= $division->quota) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'division_id' => 'Kuota bidang penuh untuk periode tanggal tersebut (Slot terisi: ' . $occupied . '/' . $division->quota . ').',
+            ]);
+        }
 
         DB::transaction(function () use ($data, $division, $request) {
             $user = User::create([

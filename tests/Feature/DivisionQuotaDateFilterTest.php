@@ -68,4 +68,79 @@ class DivisionQuotaDateFilterTest extends TestCase
         $this->assertEquals(1, $divData2['terisi_total']);
         $this->assertEquals(4, $divData2['sisa_total']);
     }
+
+    public function test_expired_accepted_application_does_not_consume_active_slot(): void
+    {
+        $division = Division::create([
+            'slug' => 'expiring-bidang',
+            'nama' => 'Administrasi',
+            'kategori' => 'Umum',
+            'instansi' => 'Diskominfo Samarinda',
+            'deskripsi' => 'Deskripsi bidang administrasi',
+            'quota' => 2,
+        ]);
+
+        $expiredUser = User::factory()->create();
+        Application::create([
+            'user_id' => $expiredUser->id,
+            'division_id' => $division->id,
+            'start_date' => now()->subDays(10)->toDateString(),
+            'end_date' => now()->subDays(2)->toDateString(),
+            'status' => 'accepted',
+            'consent_pdp' => true,
+        ]);
+
+        $activeUser = User::factory()->create();
+        Application::create([
+            'user_id' => $activeUser->id,
+            'division_id' => $division->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addDays(7)->toDateString(),
+            'status' => 'accepted',
+            'consent_pdp' => true,
+        ]);
+
+        $response = $this->get(route('katalog.index'));
+
+        $response->assertOk();
+
+        $divisions = $response->inertiaProps('divisions');
+        $divData = collect($divisions)->firstWhere('id', $division->id);
+
+        $this->assertEquals(1, $divData['terisi_total']);
+        $this->assertEquals(1, $divData['sisa_total']);
+        $this->assertEquals('tersedia', $divData['status']);
+    }
+
+    public function test_completed_application_does_not_consume_active_slot_even_if_status_is_not_accepted(): void
+    {
+        $division = Division::create([
+            'slug' => 'completed-bidang',
+            'nama' => 'Humas',
+            'kategori' => 'Umum',
+            'instansi' => 'Diskominfo Samarinda',
+            'deskripsi' => 'Deskripsi bidang humas',
+            'quota' => 2,
+        ]);
+
+        $completedUser = User::factory()->create();
+        Application::create([
+            'user_id' => $completedUser->id,
+            'division_id' => $division->id,
+            'start_date' => now()->subDays(5)->toDateString(),
+            'end_date' => now()->addDays(10)->toDateString(),
+            'status' => 'completed',
+            'consent_pdp' => true,
+        ]);
+
+        $response = $this->get(route('katalog.index'));
+
+        $response->assertOk();
+
+        $divisions = $response->inertiaProps('divisions');
+        $divData = collect($divisions)->firstWhere('id', $division->id);
+
+        $this->assertEquals(0, $divData['terisi_total']);
+        $this->assertEquals(2, $divData['sisa_total']);
+    }
 }
