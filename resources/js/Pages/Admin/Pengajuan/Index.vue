@@ -64,7 +64,7 @@ const filteredPengajuan = computed(() => {
                         <tr>
                             <th class="px-4 py-3 w-12">No</th>
                             <th class="px-4 py-3">Nama</th>
-                            <th class="px-4 py-3">Asal Instansi</th>
+                            <th class="px-4 py-3">Sekolah / Kampus</th>
                             <th class="px-4 py-3">Bidang</th>
                             <th class="px-4 py-3">Posisi</th>
                             <th class="px-4 py-3">Tanggal</th>

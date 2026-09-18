@@ -2,7 +2,8 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
-import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
+import { Hourglass } from 'lucide-vue-next';
+import { getStatusLabel, getStatusBadgeClass, formatDate, isPastEndDate } from '@/utils/statusLabel';
 
 const props = defineProps({
     peserta: { type: Array, default: () => [] },
@@ -98,9 +99,19 @@ const filteredPeserta = computed(() => {
                             <td class="px-4 py-4 text-ink-700">{{ item.posisi }}</td>
                             <td class="px-4 py-4 text-ink-500">{{ formatDate(item.tanggal_mulai) }}</td>
                             <td class="px-4 py-4">
-                                <span :class="getStatusBadgeClass(item.status)" class="badge">
-                                    {{ getStatusLabel(item.status) }}
-                                </span>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span :class="getStatusBadgeClass(item.status)" class="badge">
+                                        {{ getStatusLabel(item.status) }}
+                                    </span>
+                                    <span
+                                        v-if="item.status === 'accepted' && isPastEndDate(item.tanggal_selesai || item.end_date)"
+                                        class="badge badge-neutral cursor-help"
+                                        title="Masa PKL sudah berakhir, menunggu pembaruan status otomatis oleh sistem."
+                                    >
+                                        <Hourglass :size="14" :stroke-width="2" />
+                                        Menunggu pembaruan status
+                                    </span>
+                                </div>
                             </td>
                         </tr>
                         <tr v-if="filteredPeserta.length === 0">

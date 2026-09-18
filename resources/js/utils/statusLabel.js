@@ -119,3 +119,22 @@ export const getTimelineSteps = (pendaftaran) => {
 
     return steps;
 };
+
+export const isPastEndDate = (endDate) => {
+    if (!endDate) return false;
+
+    // Date-only string (Laravel 'date' cast -> 'YYYY-MM-DD'): parse as local day
+    // so the whole end_date day still counts as active (endOfDay comparison).
+    if (typeof endDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+        const [y, m, d] = endDate.split('-').map(Number);
+        const local = new Date(y, m - 1, d);
+        local.setHours(23, 59, 59, 999);
+        return local.getTime() < Date.now();
+    }
+
+    const end = new Date(endDate);
+    if (isNaN(end.getTime())) return false;
+
+    end.setHours(23, 59, 59, 999);
+    return end.getTime() < Date.now();
+};

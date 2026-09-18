@@ -2,7 +2,8 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
+import { Hourglass } from 'lucide-vue-next';
+import { getStatusLabel, getStatusBadgeClass, formatDate, isPastEndDate } from '@/utils/statusLabel';
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
@@ -102,9 +103,19 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
                                 <td class="px-3 py-3 font-medium text-ink-900">{{ item.nama }}</td>
                                 <td class="px-3 py-3 text-ink-700">{{ item.posisi }}</td>
                                 <td class="px-3 py-3">
-                                    <span :class="getStatusBadgeClass(item.status)" class="badge">
-                                        {{ getStatusLabel(item.status) }}
-                                    </span>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span :class="getStatusBadgeClass(item.status)" class="badge">
+                                            {{ getStatusLabel(item.status) }}
+                                        </span>
+                                        <span
+                                            v-if="item.status === 'accepted' && isPastEndDate(item.end_date)"
+                                            class="badge badge-neutral cursor-help"
+                                            title="Masa PKL sudah berakhir, menunggu pembaruan status otomatis oleh sistem."
+                                        >
+                                            <Hourglass :size="14" :stroke-width="2" />
+                                            Menunggu pembaruan status
+                                        </span>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
