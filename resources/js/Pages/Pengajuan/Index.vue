@@ -251,6 +251,20 @@ const submit = () => {
                 </div>
 
                 <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+                    <div>
+                        <label class="field-label" for="ketua.school">Sekolah / Kampus</label>
+                        <input id="ketua.school" v-model="form.ketua.school" type="text" class="field-input" />
+                        <p v-if="frontErrors['ketua.school'] || form.errors['ketua.school']" class="mt-1.5 text-xs font-medium text-red-600">
+                            {{ frontErrors['ketua.school'] || form.errors['ketua.school'] }}
+                        </p>
+                    </div>
+                    <div>
+                        <label class="field-label" for="ketua.major">Jurusan</label>
+                        <input id="ketua.major" v-model="form.ketua.major" type="text" class="field-input" />
+                        <p v-if="frontErrors['ketua.major'] || form.errors['ketua.major']" class="mt-1.5 text-xs font-medium text-red-600">
+                            {{ frontErrors['ketua.major'] || form.errors['ketua.major'] }}
+                        </p>
+                    </div>
                     <div class="md:col-span-3">
                         <label class="field-label" for="division_id">Bidang PKL</label>
                         <select id="division_id" v-model="form.division_id" class="field-input">
@@ -357,20 +371,6 @@ const submit = () => {
                         <input id="ketua.nim" v-model="form.ketua.nim" type="text" required class="field-input" />
                         <p v-if="frontErrors['ketua.nim'] || friendlyError('ketua.nim', form.errors['ketua.nim'])" class="mt-1.5 text-xs font-medium text-red-600">
                             {{ frontErrors['ketua.nim'] || friendlyError('ketua.nim', form.errors['ketua.nim']) }}
-                        </p>
-                    </div>
-                    <div>
-                        <label class="field-label" for="ketua.school">Sekolah / Kampus</label>
-                        <input id="ketua.school" v-model="form.ketua.school" type="text" class="field-input" />
-                        <p v-if="frontErrors['ketua.school'] || form.errors['ketua.school']" class="mt-1.5 text-xs font-medium text-red-600">
-                            {{ frontErrors['ketua.school'] || form.errors['ketua.school'] }}
-                        </p>
-                    </div>
-                    <div>
-                        <label class="field-label" for="ketua.major">Jurusan</label>
-                        <input id="ketua.major" v-model="form.ketua.major" type="text" class="field-input" />
-                        <p v-if="frontErrors['ketua.major'] || form.errors['ketua.major']" class="mt-1.5 text-xs font-medium text-red-600">
-                            {{ frontErrors['ketua.major'] || form.errors['ketua.major'] }}
                         </p>
                     </div>
                     <div>
