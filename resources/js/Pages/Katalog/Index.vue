@@ -12,21 +12,24 @@ import {
     Slice,
     SearchX,
     RotateCcw,
+    Calendar,
 } from 'lucide-vue-next';
 
 const props = defineProps({
     divisions: { type: Array, default: () => [] },
     instansi: { type: Array, default: () => [] },
     stats: { type: Object, default: () => ({}) },
-    filters: { type: Object, default: () => ({ search: '', instansi: '', status: '' }) },
+    filters: { type: Object, default: () => ({ search: '', instansi: '', status: '', tanggal_mulai: '', tanggal_selesai: '' }) },
 });
 
 const search = ref(props.filters.search || '');
 const instansi = ref(props.filters.instansi || '');
 const status = ref(props.filters.status || '');
+const tanggalMulai = ref(props.filters.tanggal_mulai || '');
+const tanggalSelesai = ref(props.filters.tanggal_selesai || '');
 
 const hasActiveFilter = computed(
-    () => search.value !== '' || instansi.value !== '' || status.value !== ''
+    () => search.value !== '' || instansi.value !== '' || status.value !== '' || tanggalMulai.value !== '' || tanggalSelesai.value !== ''
 );
 
 const statusOptions = [
@@ -43,18 +46,32 @@ const statCards = computed(() => [
     { label: 'Total Slot Terisi', value: props.stats.total_slot_terisi ?? 0, icon: Database, hint: 'Peserta diterima' },
 ]);
 
+const dateRangeError = computed(() => {
+    if (!tanggalMulai.value || !tanggalSelesai.value) return '';
+    return tanggalSelesai.value < tanggalMulai.value
+        ? 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.'
+        : '';
+});
+
 const handleFilter = () => {
-    router.get(route('katalog.index'), {
+    const params = {
         search: search.value,
         instansi: instansi.value,
         status: status.value,
-    }, { preserveState: true, preserveScroll: true });
+    };
+
+    if (tanggalMulai.value) params.tanggal_mulai = tanggalMulai.value;
+    if (tanggalSelesai.value) params.tanggal_selesai = tanggalSelesai.value;
+
+    router.get(route('katalog.index'), params, { preserveState: true, preserveScroll: true });
 };
 
 const resetFilters = () => {
     search.value = '';
     instansi.value = '';
     status.value = '';
+    tanggalMulai.value = '';
+    tanggalSelesai.value = '';
     router.get(route('katalog.index'), {}, { preserveState: true, preserveScroll: true });
 };
 </script>
@@ -101,53 +118,91 @@ const resetFilters = () => {
         <!-- Filter -->
         <section class="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
             <form @submit.prevent="handleFilter" class="glass-panel rounded-3xl p-4 shadow-lg sm:p-5">
-                <div class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_240px_260px_auto]">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 items-end">
                     <div class="relative">
-                        <div class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-ink-400">
-                            <Search :size="18" :stroke-width="2" />
+                        <label class="block text-xs font-semibold text-ink-600 mb-1">Pencarian</label>
+                        <div class="relative">
+                            <div class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-ink-400">
+                                <Search :size="18" :stroke-width="2" />
+                            </div>
+                            <input
+                                v-model="search"
+                                type="text"
+                                placeholder="Cari bidang, posisi..."
+                                class="field-input pl-10 w-full"
+                            />
                         </div>
-                        <input
-                            v-model="search"
-                            type="text"
-                            placeholder="Cari nama bidang, instansi, atau posisi..."
-                            class="field-input pl-10"
-                        />
                     </div>
 
-                    <label class="relative block">
-                        <span class="sr-only">Filter Instansi</span>
-                        <select v-model="instansi" class="field-input appearance-none pr-8">
-                            <option value="">Semua Instansi</option>
-                            <option v-for="nama in instansi" :key="nama" :value="nama">{{ nama }}</option>
-                        </select>
-                        <Building2 :size="16" :stroke-width="2" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400" />
-                    </label>
-
-                    <label class="relative block">
-                        <span class="sr-only">Filter Status Kuota</span>
-                        <select v-model="status" class="field-input appearance-none pr-8">
-                            <option v-for="option in statusOptions" :key="option.value" :value="option.value">
-                                {{ option.label }}
-                            </option>
-                        </select>
-                        <Slice :size="16" :stroke-width="2" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400" />
-                    </label>
-
-                    <div class="flex items-center gap-2">
-                        <button type="submit" class="btn-primary w-full lg:max-w-none">
-                            <Search :size="16" :stroke-width="2" />
-                            Cari
-                        </button>
-                        <button
-                            v-if="hasActiveFilter"
-                            type="button"
-                            @click="resetFilters"
-                            class="btn-secondary shrink-0 px-3"
-                            title="Atur ulang filter"
-                        >
-                            <RotateCcw :size="16" :stroke-width="2" />
-                        </button>
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-600 mb-1">Instansi</label>
+                        <label class="relative block">
+                            <span class="sr-only">Filter Instansi</span>
+                            <select v-model="instansi" class="field-input appearance-none pr-8 w-full">
+                                <option value="">Semua Instansi</option>
+                                <option v-for="nama in instansi" :key="nama" :value="nama">{{ nama }}</option>
+                            </select>
+                            <Building2 :size="16" :stroke-width="2" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400" />
+                        </label>
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-600 mb-1">Status Kuota</label>
+                        <label class="relative block">
+                            <span class="sr-only">Filter Status Kuota</span>
+                            <select v-model="status" class="field-input appearance-none pr-8 w-full">
+                                <option v-for="option in statusOptions" :key="option.value" :value="option.value">
+                                    {{ option.label }}
+                                </option>
+                            </select>
+                            <Slice :size="16" :stroke-width="2" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400" />
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-600 mb-1">Tanggal Mulai PKL</label>
+                        <div class="relative">
+                            <input
+                                v-model="tanggalMulai"
+                                type="date"
+                                class="field-input pl-9 w-full text-xs"
+                                title="Tanggal Mulai PKL"
+                            />
+                            <Calendar :size="16" :stroke-width="2" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-600 mb-1">Tanggal Selesai PKL</label>
+                        <div class="relative">
+                            <input
+                                v-model="tanggalSelesai"
+                                type="date"
+                                :min="tanggalMulai"
+                                class="field-input pl-9 w-full text-xs"
+                                title="Tanggal Selesai PKL"
+                            />
+                            <Calendar :size="16" :stroke-width="2" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+                        </div>
+                        <p v-if="dateRangeError" class="mt-1 text-xs font-medium text-red-600">{{ dateRangeError }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-3 flex items-center justify-end gap-2">
+                    <button type="submit" :disabled="Boolean(dateRangeError)" class="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+                        <Search :size="16" :stroke-width="2" />
+                        Cari
+                    </button>
+                    <button
+                        v-if="hasActiveFilter"
+                        type="button"
+                        @click="resetFilters"
+                        class="btn-secondary px-3"
+                        title="Atur ulang filter"
+                    >
+                        <RotateCcw :size="16" :stroke-width="2" />
+                        Reset Filter
+                    </button>
                 </div>
             </form>
         </section>

@@ -109,7 +109,7 @@ const submitReupload = () => {
                     </div>
 
                     <!-- Surat Balasan download button -->
-                    <div v-if="['accepted', 'rejected'].includes(pendaftaran?.status)" class="mt-4 pt-3 border-t border-ink-300/20">
+                    <div v-if="['accepted', 'rejected', 'completed'].includes(pendaftaran?.status)" class="mt-4 pt-3 border-t border-ink-300/20">
                         <a v-if="pendaftaran?.surat_balasan_url"
                             :href="pendaftaran.surat_balasan_url"
                             target="_blank"

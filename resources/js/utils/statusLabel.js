@@ -4,7 +4,7 @@
  * - 'pending' / 'diajukan' -> "Dalam Proses" (badge-warning)
  * - 'accepted' / 'diterima' -> "Diterima" (badge-success)
  * - 'rejected' / 'ditolak' -> "Ditolak" (badge-danger)
- * - 'completed' / 'selesai' -> "Selesai" (badge-info)
+ * - 'completed' / 'selesai' -> "Selesai" (badge-neutral)
  */
 
 export const getStatusLabel = (status) => {
@@ -53,7 +53,7 @@ export const getStatusBadgeClass = (status) => {
             return 'badge-danger';
         case 'completed':
         case 'selesai':
-            return 'badge-info';
+            return 'badge-neutral';
         default:
             return 'badge-warning';
     }
@@ -82,10 +82,7 @@ export const getTimelineSteps = (pendaftaran) => {
     const rawStatus = (pendaftaran.status || 'pending').toLowerCase();
     const createdAt = formatDate(pendaftaran.created_at);
     const updatedAt = formatDate(pendaftaran.updated_at || pendaftaran.created_at);
-    const endDate = pendaftaran.end_date ? new Date(pendaftaran.end_date) : null;
-    const isCompleted = rawStatus === 'completed'
-        || rawStatus === 'selesai'
-        || (rawStatus === 'accepted' && endDate && endDate < new Date());
+    const isCompleted = rawStatus === 'completed' || rawStatus === 'selesai';
 
     const steps = [{
         label: 'Pengajuan Dibuat',

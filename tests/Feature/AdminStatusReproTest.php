@@ -21,13 +21,13 @@ class AdminStatusReproTest extends TestCase
         Role::findOrCreate('student');
         Role::findOrCreate('agency_admin');
 
-        $agency = Agency::create(['nama' => 'Diskominfo Kaltim', 'slug' => 'diskominfo-kaltim', 'kode' => 'DK']);
+        $agency = Agency::create(['nama' => 'Diskominfo Samarinda', 'slug' => 'diskominfo-kaltim', 'kode' => 'DK']);
         $division = Division::create([
             'agency_id' => $agency->id,
             'slug' => 'aplikasi-layanan',
             'nama' => 'Aplikasi & Layanan',
             'kategori' => 'teknis',
-            'instansi' => 'Diskominfo Kaltim',
+            'instansi' => 'Diskominfo Samarinda',
             'deskripsi' => 'test',
             'quota' => 10,
         ]);

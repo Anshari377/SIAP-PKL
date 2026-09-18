@@ -2,10 +2,22 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { MapPin, ExternalLink } from 'lucide-vue-next';
 
 const props = defineProps({
     division: { type: Object, required: true },
+});
+
+const location = computed(() => ({
+    alamat: props.division?.alamat_lengkap || props.division?.agency?.alamat_lengkap || '',
+    latitude: props.division?.latitude ?? props.division?.agency?.latitude ?? null,
+    longitude: props.division?.longitude ?? props.division?.agency?.longitude ?? null,
+}));
+
+const mapsUrl = computed(() => {
+    if (location.value.latitude == null || location.value.longitude == null) return '';
+    return `https://www.google.com/maps?q=${location.value.latitude},${location.value.longitude}`;
 });
 
 const showKuotaPenuh = ref(false);
@@ -155,6 +167,34 @@ const handleDaftar = (posisi) => {
                             <span class="badge badge-success">Buka</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Lokasi Instansi -->
+                <div v-if="location.alamat || mapsUrl" class="glass-panel p-6 space-y-4 h-fit">
+                    <h2 class="font-display text-lg font-bold text-ink-900 pb-3 border-b border-ink-300/30">
+                        Lokasi Instansi
+                    </h2>
+                    <div class="flex items-start gap-3 text-sm">
+                        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-forest-600/10 text-forest-700">
+                            <MapPin :size="20" :stroke-width="1.8" />
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-ink-900">{{ props.division.instansi }}</p>
+                            <p v-if="location.alamat" class="mt-1 text-xs leading-relaxed text-ink-600">
+                                {{ location.alamat }}
+                            </p>
+                        </div>
+                    </div>
+                    <a
+                        v-if="mapsUrl"
+                        :href="mapsUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn-primary w-full text-center text-sm"
+                    >
+                        <ExternalLink :size="16" :stroke-width="2" />
+                        Lihat di Peta
+                    </a>
                 </div>
             </div>
         </div>

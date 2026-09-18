@@ -24,7 +24,7 @@ class PublicCatalogController extends Controller
             'total_slot_terisi' => $divisions->sum('terisi_total'),
         ];
 
-        $filters = $request->only('search', 'instansi', 'status');
+        $filters = $request->only('search', 'instansi', 'status', 'tanggal_mulai', 'tanggal_selesai');
 
         return Inertia::render('Katalog/Index', [
             'divisions' => $this->filterDivisions($divisions, $filters)->values(),
@@ -34,11 +34,11 @@ class PublicCatalogController extends Controller
         ]);
     }
 
-    public function show(string $division)
+    public function show(Request $request, string $division)
     {
         $division = Division::with('positions')
             ->where('slug', $division)
-            ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
+            ->withCount(['applications as accepted_count' => fn ($query) => $this->applyAcceptedQuotaFilter($query, $request->input('tanggal_mulai'), $request->input('tanggal_selesai'))])
             ->firstOrFail();
 
         return Inertia::render('Katalog/Show', [

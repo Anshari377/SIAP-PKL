@@ -15,7 +15,7 @@ import { Link } from '@inertiajs/vue3';
                     </div>
                     <div class="leading-tight">
                         <span class="block font-display text-base font-bold tracking-tight text-ink-900">SIAP-PKL</span>
-                        <span class="block text-[9px] font-semibold uppercase tracking-widest text-forest-700">Diskominfo Kaltim</span>
+                        <span class="block text-[9px] font-semibold uppercase tracking-widest text-forest-700">Diskominfo Samarinda</span>
                     </div>
                 </Link>
 

@@ -36,6 +36,7 @@
     .badge-warning { @apply bg-status-warning/15 text-gold-500; }
     .badge-danger  { @apply bg-status-danger/10 text-status-danger; }
     .badge-info    { @apply bg-status-info/10 text-forest-600; }
+    .badge-neutral { @apply bg-ink-100 text-ink-700; }
     .badge-amber, .badge-revision { @apply bg-amber-100 text-amber-800 border border-amber-300/50; }
 
     .btn-primary {

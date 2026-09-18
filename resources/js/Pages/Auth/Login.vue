@@ -7,7 +7,7 @@ const handleGoogleLogin = () => {
 </script>
 
 <template>
-    <Head title="Masuk - SIAP-PKL Diskominfo Kaltim" />
+    <Head title="Masuk - SIAP-PKL Diskominfo Samarinda" />
 
     <main class="relative grid min-h-screen bg-surface lg:grid-cols-12 overflow-hidden">
         <!-- Panel Kiri (Hidden di Mobile - 7 Cols) - Rich Dark Forest Gradient + Geometric Decorations.
@@ -90,7 +90,7 @@ const handleGoogleLogin = () => {
                 </div>
                 <div>
                     <span class="block font-display text-lg font-bold tracking-tight text-white">SIAP-PKL</span>
-                    <span class="block text-[10px] font-semibold uppercase tracking-widest text-gold-400">Diskominfo Kaltim</span>
+                    <span class="block text-[10px] font-semibold uppercase tracking-widest text-gold-400">Diskominfo Samarinda</span>
                 </div>
             </div>
 
@@ -124,7 +124,7 @@ const handleGoogleLogin = () => {
                 </div>
                 <div>
                     <h2 class="font-display text-lg font-bold text-ink-900">SIAP-PKL</h2>
-                    <p class="text-xs font-medium text-forest-700 uppercase tracking-wider">Diskominfo Kaltim</p>
+                    <p class="text-xs font-medium text-forest-700 uppercase tracking-wider">Diskominfo Samarinda</p>
                 </div>
             </div>
 
@@ -170,7 +170,7 @@ const handleGoogleLogin = () => {
                 <!-- Legal Footer -->
                 <div class="mt-8 border-t border-ink-300/30 pt-6">
                     <p class="text-center text-[11px] leading-relaxed text-ink-500">
-                        Dengan melanjutkan, Anda menyetujui <a href="#" class="font-medium text-forest-700 underline decoration-forest-700/30 hover:decoration-forest-700">Ketentuan Layanan</a> & <a href="#" class="font-medium text-forest-700 underline decoration-forest-700/30 hover:decoration-forest-700">Kebijakan Privasi</a> Diskominfo Kaltim.
+                        Dengan melanjutkan, Anda menyetujui <a href="#" class="font-medium text-forest-700 underline decoration-forest-700/30 hover:decoration-forest-700">Ketentuan Layanan</a> & <a href="#" class="font-medium text-forest-700 underline decoration-forest-700/30 hover:decoration-forest-700">Kebijakan Privasi</a> Diskominfo Samarinda.
                     </p>
                 </div>
             </div>

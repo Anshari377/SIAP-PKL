@@ -54,6 +54,16 @@ const formatReadableDate = (dateString) => {
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
+const friendlyError = (field, error) => {
+    if (!error) return '';
+    const lower = error.toLowerCase();
+    if (lower.includes('has already been taken') || lower.includes('sudah terdaftar') || lower.includes('sudah digunakan')) {
+        if (field.includes('phone')) return 'Nomor HP ini sudah terdaftar oleh peserta lain.';
+        if (field.includes('nim')) return 'NIM/NISN ini sudah terdaftar, pastikan tidak ada kesalahan input.';
+    }
+    return error;
+};
+
 const checkAvailability = async () => {
     if (!form.division_id || !form.start_date || !form.end_date) return;
 
@@ -130,16 +140,16 @@ const validateFrontend = () => {
     if (!form.tipe) errors.tipe = 'Pilih tipe pendaftaran.';
 
     if (!form.ketua.name.trim()) errors['ketua.name'] = 'Nama ketua wajib diisi.';
+    if (!form.ketua.nim.trim()) errors['ketua.nim'] = 'NIM/NISN wajib diisi.';
     if (!form.ketua.school.trim()) errors['ketua.school'] = 'Sekolah/Kampus ketua wajib diisi.';
     if (!form.ketua.major.trim()) errors['ketua.major'] = 'Jurusan ketua wajib diisi.';
-    if (!form.ketua.phone.trim()) errors['ketua.phone'] = 'No HP ketua wajib diisi.';
 
     if (form.tipe === 'kelompok') {
         if (members.value.length === 0) {
             errors.members = 'Minimal tambahkan 1 anggota kelompok.';
         } else {
             const invalidIdx = members.value.findIndex(
-                (m) => !m.name.trim() || !m.school.trim() || !m.major.trim() || !m.phone.trim()
+                (m) => !m.name.trim() || !m.nim.trim() || !m.school.trim() || !m.major.trim()
             );
             if (invalidIdx >= 0) {
                 errors.members = `Data anggota ke-${invalidIdx + 1} belum lengkap.`;
@@ -343,9 +353,11 @@ const submit = () => {
                         </p>
                     </div>
                     <div>
-                        <label class="field-label" for="ketua.nim">NIM / NISN <span class="text-ink-400">(opsional)</span></label>
-                        <input id="ketua.nim" v-model="form.ketua.nim" type="text" class="field-input" />
-                        <p v-if="form.errors['ketua.nim']" class="mt-1.5 text-xs font-medium text-red-600">{{ form.errors['ketua.nim'] }}</p>
+                        <label class="field-label" for="ketua.nim">NIM / NISN <span class="text-red-600">*</span></label>
+                        <input id="ketua.nim" v-model="form.ketua.nim" type="text" required class="field-input" />
+                        <p v-if="frontErrors['ketua.nim'] || friendlyError('ketua.nim', form.errors['ketua.nim'])" class="mt-1.5 text-xs font-medium text-red-600">
+                            {{ frontErrors['ketua.nim'] || friendlyError('ketua.nim', form.errors['ketua.nim']) }}
+                        </p>
                     </div>
                     <div>
                         <label class="field-label" for="ketua.school">Sekolah / Kampus</label>
@@ -362,10 +374,10 @@ const submit = () => {
                         </p>
                     </div>
                     <div>
-                        <label class="field-label" for="ketua.phone">No HP</label>
+                        <label class="field-label" for="ketua.phone">No HP <span class="text-ink-400">(opsional)</span></label>
                         <input id="ketua.phone" v-model="form.ketua.phone" type="text" inputmode="tel" class="field-input" />
-                        <p v-if="frontErrors['ketua.phone'] || form.errors['ketua.phone']" class="mt-1.5 text-xs font-medium text-red-600">
-                            {{ frontErrors['ketua.phone'] || form.errors['ketua.phone'] }}
+                        <p v-if="frontErrors['ketua.phone'] || friendlyError('ketua.phone', form.errors['ketua.phone'])" class="mt-1.5 text-xs font-medium text-red-600">
+                            {{ frontErrors['ketua.phone'] || friendlyError('ketua.phone', form.errors['ketua.phone']) }}
                         </p>
                     </div>
                 </div>
@@ -424,10 +436,10 @@ const submit = () => {
                             </p>
                         </div>
                         <div>
-                            <label class="field-label" :for="`members.${index}.nim`">NIM / NISN <span class="text-ink-400">(opsional)</span></label>
-                            <input :id="`members.${index}.nim`" v-model="member.nim" type="text" class="field-input" />
-                            <p v-if="form.errors[`members.${index}.nim`]" class="mt-1.5 text-xs font-medium text-red-600">
-                                {{ form.errors[`members.${index}.nim`] }}
+                            <label class="field-label" :for="`members.${index}.nim`">NIM / NISN <span class="text-red-600">*</span></label>
+                            <input :id="`members.${index}.nim`" v-model="member.nim" type="text" required class="field-input" />
+                            <p v-if="friendlyError(`members.${index}.nim`, form.errors[`members.${index}.nim`])" class="mt-1.5 text-xs font-medium text-red-600">
+                                {{ friendlyError(`members.${index}.nim`, form.errors[`members.${index}.nim`]) }}
                             </p>
                         </div>
                         <div>
@@ -445,10 +457,10 @@ const submit = () => {
                             </p>
                         </div>
                         <div>
-                            <label class="field-label" :for="`members.${index}.phone`">No HP</label>
+                            <label class="field-label" :for="`members.${index}.phone`">No HP <span class="text-ink-400">(opsional)</span></label>
                             <input :id="`members.${index}.phone`" v-model="member.phone" type="text" inputmode="tel" class="field-input" />
-                            <p v-if="form.errors[`members.${index}.phone`]" class="mt-1.5 text-xs font-medium text-red-600">
-                                {{ form.errors[`members.${index}.phone`] }}
+                            <p v-if="friendlyError(`members.${index}.phone`, form.errors[`members.${index}.phone`])" class="mt-1.5 text-xs font-medium text-red-600">
+                                {{ friendlyError(`members.${index}.phone`, form.errors[`members.${index}.phone`]) }}
                             </p>
                         </div>
                     </div>

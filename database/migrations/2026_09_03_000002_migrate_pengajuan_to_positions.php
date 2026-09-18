@@ -40,7 +40,7 @@ return new class extends Migration
             [
                 'division_id' => $divisionIds['aplikasi-layanan-e-government'],
                 'nama' => 'Web Developer',
-                'deskripsi' => 'Membantu tim mengembangkan dan memelihara aplikasi internal serta layanan publik berbasis web milik Diskominfo Kaltim.',
+                'deskripsi' => 'Membantu tim mengembangkan dan memelihara aplikasi internal serta layanan publik berbasis web milik Diskominfo Samarinda.',
                 'kuota' => 5,
                 'terisi' => 5,
                 'kualifikasi' => json_encode(['Menguasai HTML/CSS/JS dasar', 'Familiar dengan salah satu framework backend', 'Mampu bekerja dalam tim']),
@@ -58,7 +58,7 @@ return new class extends Migration
             [
                 'division_id' => $divisionIds['sekretariat'],
                 'nama' => 'Administrasi',
-                'deskripsi' => 'Membantu pengelolaan surat-menyurat, kearsipan, dan administrasi umum di lingkungan Sekretariat Diskominfo Kaltim.',
+                'deskripsi' => 'Membantu pengelolaan surat-menyurat, kearsipan, dan administrasi umum di lingkungan Sekretariat Diskominfo Samarinda.',
                 'kuota' => 4,
                 'terisi' => 0,
                 'kualifikasi' => json_encode(['Teliti dan rapi dalam pengarsipan', 'Menguasai Microsoft Office dasar', 'Mampu berkomunikasi dengan baik']),

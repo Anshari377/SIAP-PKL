@@ -10,11 +10,33 @@ trait InteractsWithDivisions
 {
     private function divisions(Request $request): Collection
     {
+        $tanggalMulai = $request->input('tanggal_mulai');
+        $tanggalSelesai = $request->input('tanggal_selesai');
+
         return Division::query()
             ->with('positions')
-            ->withCount(['applications as accepted_count' => fn ($query) => $query->where('status', 'accepted')->excludeDummy()])
+            ->withCount(['applications as accepted_count' => fn ($query) => $this->applyAcceptedQuotaFilter($query, $tanggalMulai, $tanggalSelesai)])
             ->get()
             ->map(fn (Division $division) => $this->withQuota($division));
+    }
+
+    private function applyAcceptedQuotaFilter($query, ?string $tanggalMulai = null, ?string $tanggalSelesai = null)
+    {
+        $query->where('status', 'accepted')->excludeDummy();
+
+        if ($tanggalMulai && $tanggalSelesai) {
+            $query->where('start_date', '<=', $tanggalSelesai)
+                ->where('end_date', '>=', $tanggalMulai);
+        } elseif ($tanggalMulai) {
+            $query->where('end_date', '>=', $tanggalMulai);
+        } elseif ($tanggalSelesai) {
+            $query->where('start_date', '<=', $tanggalSelesai)
+                ->where('end_date', '>=', now()->toDateString());
+        } else {
+            $query->where('end_date', '>=', now()->toDateString());
+        }
+
+        return $query;
     }
 
     private function withQuota(Division $division): Division

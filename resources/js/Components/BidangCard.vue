@@ -10,6 +10,7 @@ import {
     HeartPulse,
     LineChart,
     Map,
+    MapPin,
 } from 'lucide-vue-next';
 
 defineProps({
@@ -30,6 +31,17 @@ const categoryIcons = {
 };
 
 const iconFor = (kategori) => categoryIcons[kategori] || ClipboardList;
+
+const instansiLocation = (item) => ({
+    alamat: item?.alamat_lengkap || item?.agency?.alamat_lengkap || '',
+    latitude: item?.latitude ?? item?.agency?.latitude ?? null,
+    longitude: item?.longitude ?? item?.agency?.longitude ?? null,
+});
+
+const mapsUrl = (location) => {
+    if (location.latitude == null || location.longitude == null) return '';
+    return `https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
+};
 
 const statusMeta = (item) => {
     const sisa = Number(item.sisa_total ?? 0);
@@ -87,6 +99,20 @@ const statusMeta = (item) => {
                     <Building2 :size="14" :stroke-width="2" class="shrink-0" />
                     {{ item.instansi }}
                 </p>
+                <p v-if="instansiLocation(item).alamat" class="mt-1 flex items-start gap-1.5 text-xs leading-relaxed text-ink-500">
+                    <MapPin :size="14" :stroke-width="2" class="mt-0.5 shrink-0" />
+                    {{ instansiLocation(item).alamat }}
+                </p>
+                <a
+                    v-if="mapsUrl(instansiLocation(item))"
+                    :href="mapsUrl(instansiLocation(item))"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-forest-700 hover:underline"
+                >
+                    <MapPin :size="13" :stroke-width="2" />
+                    Lihat di Peta
+                </a>
             </div>
             <span :class="['badge', statusMeta(item).badge]" class="whitespace-nowrap">
                 {{ statusMeta(item).label }}

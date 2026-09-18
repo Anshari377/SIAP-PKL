@@ -19,7 +19,7 @@ defineProps({
         <template #default>
             <div class="mb-6">
                 <h2 class="font-display text-xl font-bold text-ink-900">Halo, Mahasiswa dan Siswa/Siswi  yang sedang PKL</h2>
-                <p class="mt-1 text-sm text-ink-500">Selamat datang di Sistem Management PKL Diskominfo Kaltim.</p>
+                <p class="mt-1 text-sm text-ink-500">Selamat datang di Sistem Management PKL Diskominfo Samarinda.</p>
             </div>
 
             <!-- 4 Stat Cards in a row -->
@@ -116,7 +116,7 @@ defineProps({
                         <li class="flex items-start gap-3 rounded-lg p-2 transition hover:bg-white/40">
                             <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-forest-600" />
                             <div>
-                                <p class="text-sm font-medium text-ink-900">Pembukaan Pendaftaran PKL Periode Gelombang II Diskominfo Kaltim</p>
+                                <p class="text-sm font-medium text-ink-900">Pembukaan Pendaftaran PKL Periode Gelombang II Diskominfo Samarinda</p>
                                 <p class="text-xs text-ink-500 mt-0.5">01 September 2026</p>
                             </div>
                         </li>

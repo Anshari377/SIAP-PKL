@@ -25,7 +25,7 @@ try {
         'slug' => 'repro-division-'.uniqid(),
         'nama' => 'Repro Division',
         'kategori' => 'teknis',
-        'instansi' => 'Diskominfo Kaltim',
+        'instansi' => 'Diskominfo Samarinda',
         'deskripsi' => 'repro',
         'quota' => 5,
     ]);

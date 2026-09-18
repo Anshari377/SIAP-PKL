@@ -29,7 +29,7 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
     <AdminLayout title="Dashboard Admin">
         <div class="mb-6">
             <h2 class="font-display text-xl font-bold text-ink-900">Selamat Datang, Admin Instansi</h2>
-            <p class="mt-1 text-sm text-ink-500">Ringkasan aktivitas PKL Diskominfo Kaltim hari ini.</p>
+            <p class="mt-1 text-sm text-ink-500">Ringkasan aktivitas PKL Diskominfo Samarinda hari ini.</p>
         </div>
 
         <!-- 4 Stat Cards -->

@@ -88,7 +88,7 @@ const current = page.props.activeNav ?? '';
                 </div>
                 <div v-if="sidebarOpen || mobileOpen" class="flex flex-col">
                     <span class="font-display text-base font-bold tracking-tight text-white">SIAP-PKL</span>
-                    <span class="text-[10px] text-gold-400 font-medium tracking-wider uppercase">Diskominfo Kaltim</span>
+                    <span class="text-[10px] text-gold-400 font-medium tracking-wider uppercase">Diskominfo Samarinda</span>
                 </div>
                 <button
                     v-if="mobileOpen"

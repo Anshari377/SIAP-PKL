@@ -11,9 +11,9 @@ const stats = ref({
 });
 
 const aktivitasTerbaru = ref([
-    { id: 1, waktu: '2026-09-08 09:12:00', user: 'Budi Santoso, S.Kom', aksi: 'Terima Pengajuan', instansi: 'Diskominfo Kaltim' },
+    { id: 1, waktu: '2026-09-08 09:12:00', user: 'Budi Santoso, S.Kom', aksi: 'Terima Pengajuan', instansi: 'Diskominfo Samarinda' },
     { id: 2, waktu: '2026-09-08 08:47:00', user: 'Siti Aminah', aksi: 'Tambah Walk-in', instansi: 'RSUD Abdul Wahab Sjahranie' },
-    { id: 3, waktu: '2026-09-07 15:30:00', user: 'Budi Santoso, S.Kom', aksi: 'Ubah Kuota', instansi: 'Diskominfo Kaltim' },
+    { id: 3, waktu: '2026-09-07 15:30:00', user: 'Budi Santoso, S.Kom', aksi: 'Ubah Kuota', instansi: 'Diskominfo Samarinda' },
     { id: 4, waktu: '2026-09-07 11:05:00', user: 'Andi Wijaya', aksi: 'Tolak Pengajuan', instansi: 'Dinas Pendidikan Kaltim' },
     { id: 5, waktu: '2026-09-07 10:22:00', user: 'Rina Marlina', aksi: 'Undang Admin', instansi: 'BANKALTIMTARA' },
 ]);

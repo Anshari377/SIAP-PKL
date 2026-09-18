@@ -49,7 +49,7 @@ const homeHref = computed(() => {
                 </div>
                 <div class="text-left">
                     <p class="font-display text-sm font-bold tracking-tight text-ink-900">SIAP-PKL</p>
-                    <p class="text-[10px] font-medium uppercase tracking-wider text-forest-700">Diskominfo Kaltim</p>
+                    <p class="text-[10px] font-medium uppercase tracking-wider text-forest-700">Diskominfo Samarinda</p>
                 </div>
             </div>
 
