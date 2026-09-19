@@ -9,16 +9,30 @@ const search = ref('');
 const statusFilter = ref('');
 
 const filteredPengajuan = computed(() => {
-    return props.pengajuan.map((item) => ({
-        ...item,
-        nama: item.user?.name ?? '-',
-        email: item.user?.email ?? '-',
-        instansi: item.user?.agency?.name ?? item.user?.instansi ?? '-',
-        bidang: item.division?.nama ?? '-',
-        posisi: item.position?.nama ?? '-',
-        tanggal: item.created_at,
-    })).filter((item) => {
-        const matchSearch = !search.value || item.nama.toLowerCase().includes(search.value.toLowerCase());
+    return props.pengajuan.map((item) => {
+        const sekolahKampus =
+            item.members?.[0]?.school ||
+            item.user?.agency?.name ||
+            item.user?.instansi ||
+            item.school ||
+            item.instansi ||
+            '-';
+
+        return {
+            ...item,
+            nama: item.members?.[0]?.name || item.user?.name || '-',
+            email: item.user?.email ?? '-',
+            sekolah: sekolahKampus,
+            instansi: sekolahKampus,
+            bidang: item.division?.nama ?? '-',
+            posisi: item.position?.nama ?? '-',
+            tanggal: item.created_at,
+        };
+    }).filter((item) => {
+        const matchSearch =
+            !search.value ||
+            item.nama.toLowerCase().includes(search.value.toLowerCase()) ||
+            item.sekolah.toLowerCase().includes(search.value.toLowerCase());
         const matchStatus = !statusFilter.value || item.status === statusFilter.value;
         return matchSearch && matchStatus;
     });
@@ -79,7 +93,7 @@ const filteredPengajuan = computed(() => {
                                 <div class="font-semibold text-ink-900">{{ item.nama }}</div>
                                 <div class="text-xs text-ink-500">{{ item.email }}</div>
                             </td>
-                            <td class="px-4 py-4 text-ink-700">{{ item.instansi }}</td>
+                            <td class="px-4 py-4 text-ink-700">{{ item.sekolah }}</td>
                             <td class="px-4 py-4 font-medium text-ink-800">{{ item.bidang }}</td>
                             <td class="px-4 py-4 text-ink-700">{{ item.posisi }}</td>
                             <td class="px-4 py-4 text-ink-500">{{ formatDate(item.tanggal) }}</td>

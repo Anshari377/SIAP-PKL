@@ -17,7 +17,7 @@ class AdminApplicationController extends Controller
     public function index(Request $request)
     {
         $applications = $this->queryFor($request->user())
-            ->with(['user.agency', 'division'])
+            ->with(['user.agency', 'division', 'members'])
             ->latest()
             ->get();
 

@@ -59,11 +59,28 @@ export const getStatusBadgeClass = (status) => {
     }
 };
 
-export const formatDate = (dateString) => {
+export const formatDate = (dateString, customTime = null) => {
     if (!dateString || dateString === '-') return '-';
     try {
-        const date = new Date(dateString);
+        let date;
+        if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            const [y, m, d] = dateString.split('-').map(Number);
+            date = new Date(y, m - 1, d);
+        } else {
+            date = new Date(dateString);
+        }
+
         if (isNaN(date.getTime())) return dateString;
+
+        if (customTime) {
+            const datePart = date.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+            });
+            return `${datePart}, ${customTime}`;
+        }
+
         return date.toLocaleDateString('id-ID', {
             day: '2-digit',
             month: 'short',
@@ -75,6 +92,9 @@ export const formatDate = (dateString) => {
         return dateString;
     }
 };
+
+export const formatStartDate = (dateString) => formatDate(dateString, '08.00');
+export const formatEndDate = (dateString) => formatDate(dateString, '16.00');
 
 export const getTimelineSteps = (pendaftaran) => {
     if (!pendaftaran) return [];
@@ -108,7 +128,7 @@ export const getTimelineSteps = (pendaftaran) => {
         steps.push({ label: 'Diterima', date: updatedAt, status: 'completed' });
         steps.push({
             label: 'Selesai',
-            date: isCompleted ? (pendaftaran.end_date ? formatDate(pendaftaran.end_date) : updatedAt) : '-',
+            date: isCompleted ? (pendaftaran.end_date ? formatEndDate(pendaftaran.end_date) : updatedAt) : '-',
             status: isCompleted ? 'completed' : 'pending',
         });
         return steps;

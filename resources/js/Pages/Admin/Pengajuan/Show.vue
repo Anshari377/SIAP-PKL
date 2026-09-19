@@ -2,7 +2,7 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref, computed, watch, nextTick } from 'vue';
-import { getStatusLabel, getStatusBadgeClass, formatDate, getTimelineSteps } from '@/utils/statusLabel';
+import { getStatusLabel, getStatusBadgeClass, formatDate, formatStartDate, formatEndDate, getTimelineSteps } from '@/utils/statusLabel';
 
 const props = defineProps({
     pengajuan: { type: Object, required: true },
@@ -137,7 +137,7 @@ const submitRevision = () => {
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                         <div>
                             <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Nama Lengkap</p>
-                            <p class="mt-1 font-semibold text-ink-900">{{ pengajuan.user?.name ?? '-' }}</p>
+                            <p class="mt-1 font-semibold text-ink-900">{{ ketua.name || pengajuan.user?.name || '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Email</p>
@@ -182,7 +182,7 @@ const submitRevision = () => {
                 <!-- Period and members -->
                 <div class="glass-panel p-6">
                     <h3 class="mb-4 font-display text-base font-bold text-ink-900">Periode PKL</h3>
-                    <p class="text-sm text-ink-800">{{ formatDate(pengajuan.start_date) }} - {{ formatDate(pengajuan.end_date) }}</p>
+                    <p class="text-sm text-ink-800">{{ formatStartDate(pengajuan.start_date) }} - {{ formatEndDate(pengajuan.end_date) }}</p>
                     <div v-if="anggota.length" class="mt-5 border-t border-ink-300/30 pt-4">
                         <h3 class="mb-3 font-display text-base font-bold text-ink-900">Anggota Pengajuan</h3>
                         <div class="space-y-2">

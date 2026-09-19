@@ -4,7 +4,7 @@ import Modal from '@/Components/Modal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { Hourglass } from 'lucide-vue-next';
-import { getStatusLabel, getStatusBadgeClass, formatDate, isPastEndDate } from '@/utils/statusLabel';
+import { getStatusLabel, getStatusBadgeClass, formatDate, formatStartDate, formatEndDate, isPastEndDate } from '@/utils/statusLabel';
 
 const props = defineProps({
     peserta: { type: Array, default: () => [] },
@@ -133,9 +133,9 @@ const filteredPeserta = computed(() => {
                             <td class="px-4 py-4 text-ink-700">{{ item.instansi }}</td>
                             <td class="px-4 py-4 font-medium text-ink-800">{{ item.bidang }}</td>
                             <td class="px-4 py-4 text-ink-700">{{ item.posisi }}</td>
-                            <td class="px-4 py-4 text-ink-500">{{ formatDate(item.tanggal_mulai) }}</td>
+                            <td class="px-4 py-4 text-ink-500">{{ formatStartDate(item.tanggal_mulai) }}</td>
                             <td class="px-4 py-4 text-ink-500">
-                                <span v-if="item.tanggal_selesai">{{ formatDate(item.tanggal_selesai) }}</span>
+                                <span v-if="item.tanggal_selesai">{{ formatEndDate(item.tanggal_selesai) }}</span>
                                 <span v-else class="text-ink-300">—</span>
                             </td>
                             <td class="px-4 py-4">
@@ -220,7 +220,7 @@ const filteredPeserta = computed(() => {
                     <div v-if="selectedPeserta.tanggal_mulai" class="flex justify-between">
                         <span class="text-ink-500 text-xs">Periode PKL:</span>
                         <span class="font-medium text-ink-700">
-                            {{ formatDate(selectedPeserta.tanggal_mulai) }} — {{ formatDate(selectedPeserta.tanggal_selesai) ?? '—' }}
+                            {{ formatStartDate(selectedPeserta.tanggal_mulai) }} — {{ formatEndDate(selectedPeserta.tanggal_selesai) ?? '—' }}
                         </span>
                     </div>
                 </div>
