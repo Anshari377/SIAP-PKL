@@ -545,20 +545,6 @@ const submit = () => {
                             </p>
                         </div>
                         <div>
-                            <label class="field-label" :for="`members.${index}.school`">Sekolah / Kampus</label>
-                            <input :id="`members.${index}.school`" v-model="member.school" type="text" class="field-input" />
-                            <p v-if="form.errors[`members.${index}.school`]" class="mt-1.5 text-xs font-medium text-red-600">
-                                {{ form.errors[`members.${index}.school`] }}
-                            </p>
-                        </div>
-                        <div>
-                            <label class="field-label" :for="`members.${index}.major`">Jurusan</label>
-                            <input :id="`members.${index}.major`" v-model="member.major" type="text" class="field-input" />
-                            <p v-if="form.errors[`members.${index}.major`]" class="mt-1.5 text-xs font-medium text-red-600">
-                                {{ form.errors[`members.${index}.major`] }}
-                            </p>
-                        </div>
-                        <div>
                             <label class="field-label" :for="`members.${index}.phone`">No HP <span class="text-ink-400">(opsional)</span></label>
                             <input :id="`members.${index}.phone`" v-model="member.phone" type="text" inputmode="tel" class="field-input" />
                             <p v-if="friendlyError(`members.${index}.phone`, form.errors[`members.${index}.phone`])" class="mt-1.5 text-xs font-medium text-red-600">

@@ -38,16 +38,16 @@ const current = page.props.activeNav ?? '';
             @click="mobileOpen = false"
         />
 
-        <!-- Sidebar - Dark Green Gradient with Ulap Doyo Batik Pattern -->
+        <!-- Sidebar - Position Fixed so height is always 100vh viewport height across all pages -->
         <aside
             :class="[
-                mobileOpen ? 'translate-x-0' : '-translate-x-full',
-                sidebarOpen ? 'md:w-64' : 'md:w-[76px]',
+                mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+                sidebarOpen ? 'w-64' : 'w-[76px]',
             ]"
-            class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col overflow-visible bg-gradient-to-b from-forest-950 via-forest-800 to-forest-600 text-white transition-all duration-200 md:static md:translate-x-0"
+            class="fixed inset-y-0 left-0 z-40 flex h-screen flex-col overflow-visible bg-gradient-to-b from-forest-800 via-forest-700 to-forest-600 text-white transition-all duration-200 shadow-xl"
         >
             <!-- Ulap Doyo Batik SVG Pattern Watermark -->
-            <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.07]" aria-hidden="true">
+            <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.08]" aria-hidden="true">
                 <defs>
                     <pattern id="ulap-doyo-sidebar" width="48" height="48" patternUnits="userSpaceOnUse">
                         <path d="M24 0 L48 24 L24 48 L0 24 Z" fill="none" stroke="currentColor" stroke-width="1" />
@@ -61,20 +61,20 @@ const current = page.props.activeNav ?? '';
             </svg>
 
             <!-- Sidebar Header / Logo -->
-            <div class="relative flex items-center gap-3 px-5 py-5 border-b border-white/10">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-gold-400 shadow-inner">
+            <div class="relative flex items-center gap-3 px-5 py-5 border-b border-white/15">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-gold-400 shadow-inner ring-1 ring-white/20">
                     <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </div>
-                <div v-if="sidebarOpen || mobileOpen" class="flex flex-col">
+                <div v-if="sidebarOpen || mobileOpen" class="flex flex-col min-w-0">
                     <span class="font-display text-base font-bold tracking-tight text-white">SIAP-PKL</span>
-                    <span class="text-[10px] text-gold-400 font-medium tracking-wider uppercase">Diskominfo Samarinda</span>
+                    <span class="text-[10px] text-gold-400 font-semibold tracking-wider uppercase">Diskominfo Samarinda</span>
                 </div>
                 <button
                     v-if="mobileOpen"
                     type="button"
-                    class="ml-auto grid h-8 w-8 place-items-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white md:hidden"
+                    class="ml-auto grid h-8 w-8 place-items-center rounded-lg text-white/80 hover:bg-white/15 hover:text-white md:hidden"
                     @click="mobileOpen = false"
                     aria-label="Tutup menu"
                 >
@@ -85,20 +85,21 @@ const current = page.props.activeNav ?? '';
             </div>
 
             <!-- Navigation Links -->
-            <nav class="flex flex-1 flex-col px-3 py-4 overflow-y-auto">
+            <nav class="flex flex-1 flex-col px-3 py-4 space-y-1 overflow-y-auto">
                 <Link
                     v-for="item in adminNav"
                     :key="item.href"
                     :href="item.href"
                     :class="[
                         current === item.active
-                            ? 'bg-white/10 text-white font-semibold border-l-4 border-gold-400'
-                            : 'text-white/70 hover:bg-white/5 hover:text-white border-l-4 border-transparent',
+                            ? 'bg-white/15 text-white font-bold border-l-4 border-gold-400 shadow-sm rounded-r-xl'
+                            : 'text-white/80 hover:bg-white/10 hover:text-white border-l-4 border-transparent rounded-r-xl',
                     ]"
-                    class="flex items-center gap-3 px-4 py-3 text-sm transition-colors duration-200"
+                    class="flex items-center gap-3 px-3.5 py-3 text-sm transition-all duration-200 group"
                     @click="mobileOpen = false"
                 >
-                    <span class="grid h-5 w-5 shrink-0 place-items-center">
+                    <span class="grid h-5 w-5 shrink-0 place-items-center"
+                          :class="[current === item.active ? 'text-gold-300' : 'text-white/80 group-hover:text-white']">
                         <template v-if="item.icon === 'home'">
                             <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
@@ -135,14 +136,15 @@ const current = page.props.activeNav ?? '';
                             </svg>
                         </template>
                     </span>
-                    <span v-if="sidebarOpen || mobileOpen" class="truncate">{{ item.label }}</span>
+                    <span v-if="sidebarOpen || mobileOpen" class="truncate font-medium">{{ item.label }}</span>
                 </Link>
             </nav>
 
             <!-- Toggle Sidebar (desktop) -->
             <button
-                class="relative m-3 hidden items-center justify-center rounded-lg py-2 text-white/60 hover:bg-white/5 hover:text-white md:flex"
+                class="relative m-3 hidden items-center justify-center rounded-xl py-2.5 text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200 md:flex"
                 @click="sidebarOpen = !sidebarOpen"
+                aria-label="Toggle Sidebar"
             >
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" />
@@ -151,7 +153,12 @@ const current = page.props.activeNav ?? '';
         </aside>
 
         <!-- Main Content Area -->
-        <div class="flex flex-1 flex-col min-w-0">
+        <div
+            :class="[
+                sidebarOpen ? 'md:ml-64' : 'md:ml-[76px]',
+            ]"
+            class="flex flex-1 flex-col min-w-0 transition-all duration-200"
+        >
             <!-- Floating Glass Header -->
             <header class="glass-panel m-2 flex items-center justify-between gap-2 px-3 py-3 sm:m-3 sm:px-6 sm:py-3.5">
                 <div class="flex min-w-0 items-center gap-2 sm:gap-3">

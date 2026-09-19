@@ -18,7 +18,7 @@ class RiwayatController extends Controller
                 return [
                     'id' => $item->id,
                     'status' => $item->status,
-                    'created_at' => $item->created_at?->format('d M Y'),
+                    'created_at' => $item->created_at,
                     'bidang' => $item->division?->nama ?? 'Data tidak tersedia',
                     'posisi' => 'Peserta PKL',
                     'instansi' => $item->division?->instansi ?? 'Data tidak tersedia',

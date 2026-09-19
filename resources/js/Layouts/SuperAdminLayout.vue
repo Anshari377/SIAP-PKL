@@ -35,13 +35,13 @@ const current = page.props.activeNav ?? '';
             @click="mobileOpen = false"
         />
 
-        <!-- Sidebar - Dark Green Gradient with Ulap Doyo Batik Pattern -->
+        <!-- Sidebar - Position Fixed so height is always 100vh viewport height across all pages -->
         <aside
             :class="[
-                mobileOpen ? 'translate-x-0' : '-translate-x-full',
-                sidebarOpen ? 'md:w-64' : 'md:w-[76px]',
+                mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+                sidebarOpen ? 'w-64' : 'w-[76px]',
             ]"
-            class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col overflow-visible bg-gradient-to-b from-forest-950 via-forest-800 to-forest-600 text-white transition-all duration-200 md:static md:translate-x-0"
+            class="fixed inset-y-0 left-0 z-40 flex h-screen flex-col overflow-visible bg-gradient-to-b from-forest-800 via-forest-700 to-forest-600 text-white transition-all duration-200 shadow-xl"
         >
             <!-- Ulap Doyo Batik SVG Pattern Watermark -->
             <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.07]" aria-hidden="true">
@@ -133,7 +133,12 @@ const current = page.props.activeNav ?? '';
         </aside>
 
         <!-- Main Content Area -->
-        <div class="flex flex-1 flex-col min-w-0">
+        <div
+            :class="[
+                sidebarOpen ? 'md:ml-64' : 'md:ml-[76px]',
+            ]"
+            class="flex flex-1 flex-col min-w-0 transition-all duration-200"
+        >
             <!-- Floating Glass Header -->
             <header class="glass-panel m-2 flex items-center justify-between gap-2 px-3 py-3 sm:m-3 sm:px-6 sm:py-3.5">
                 <div class="flex min-w-0 items-center gap-2 sm:gap-3">

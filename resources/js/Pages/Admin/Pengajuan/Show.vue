@@ -144,7 +144,7 @@ const submitRevision = () => {
                             <p class="mt-1 text-ink-800">{{ pengajuan.user?.email ?? '-' }}</p>
                         </div>
                         <div>
-                            <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Asal Sekolah/Instansi</p>
+                            <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Asal Sekolah/Kampus</p>
                             <p class="mt-1 text-ink-800">{{ ketua.school ?? '-' }}</p>
                         </div>
                         <div>
