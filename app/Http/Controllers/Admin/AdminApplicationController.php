@@ -106,8 +106,10 @@ class AdminApplicationController extends Controller
 
         abort_unless($application->document_path && Storage::disk('public')->exists($application->document_path), 404);
 
-        return response()->file(Storage::disk('public')->path($application->document_path), [
-            'Content-Type' => Storage::disk('public')->mimeType($application->document_path) ?: 'application/pdf',
+        $documentPath = Storage::disk('public')->path($application->document_path);
+
+        return response()->file($documentPath, [
+            'Content-Type' => mime_content_type($documentPath) ?: 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.basename($application->document_path).'"',
         ]);
     }
