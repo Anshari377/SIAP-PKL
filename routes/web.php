@@ -33,6 +33,8 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 
 // Auth routes (requires authentication)
 Route::middleware('auth')->group(function () {
+    Route::get('/pengajuan/{application}/surat-balasan', [PengajuanPklController::class, 'suratBalasan'])->name('pengajuan.surat-balasan');
+
     // Student Portal Routes (hanya user ber-role 'student')
     Route::middleware('ensure.onboarded')->group(function () {
         Route::get('/dashboard', fn () => redirect()->route('home'))->name('dashboard');
@@ -73,6 +75,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/peserta', [AdminApplicationController::class, 'participants'])->name('peserta.index');
         Route::get('/peserta/walk-in/create', [AdminApplicationController::class, 'walkInCreate'])->name('peserta.walk-in.create');
+        Route::get('/peserta/walk-in/check-availability', [AdminApplicationController::class, 'walkInCheckAvailability'])->name('peserta.walk-in.check-availability');
         Route::post('/peserta/walk-in', [AdminApplicationController::class, 'walkInStore'])->name('peserta.walk-in.store');
         Route::patch('/peserta/{application}/complete', [AdminApplicationController::class, 'completeParticipant'])->name('peserta.complete');
 

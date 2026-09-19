@@ -41,9 +41,15 @@ class Application extends Model
 
     public function getSuratBalasanUrlAttribute(): ?string
     {
-        return $this->surat_balasan_path
-            ? '/storage/'.ltrim($this->surat_balasan_path, '/')
-            : null;
+        if (! $this->surat_balasan_path) {
+            return null;
+        }
+
+        try {
+            return route('pengajuan.surat-balasan', $this->id);
+        } catch (\Throwable $e) {
+            return '/storage/'.ltrim($this->surat_balasan_path, '/');
+        }
     }
 
     public function user(): BelongsTo
@@ -91,6 +97,10 @@ class Application extends Model
 
     public static function syncCompletedApplications(): void
     {
+        // Selesaikan aplikasi yang tanggal berakhirnya sudah lewat hari ini.
+        // Logika sederhana: jika end_date < today maka status = completed.
+        // Tampilan 'selesai' di hari yang sama (end_date = today) ditangani
+        // di sisi frontend (isPastEndDate) dan tombol 'Selesaikan' manual.
         static::query()
             ->where('status', 'accepted')
             ->whereNotNull('end_date')

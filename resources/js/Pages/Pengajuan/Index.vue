@@ -267,12 +267,14 @@ const validateFrontend = () => {
 };
 
 const canSubmit = computed(() => {
-    return !checking.value && availability.value?.available !== false && form.consent_pdp;
+    // Harus ada cek availability yang sudah selesai dan hasilnya 'tersedia'
+    return !checking.value && availability.value?.available === true && form.consent_pdp;
 });
 
 const submit = () => {
     if (!validateFrontend()) return;
-    if (availability.value?.available === false) return;
+    // Blokir jika kuota tidak tersedia ATAU cek belum selesai
+    if (availability.value?.available !== true) return;
 
     form.transform((data) => ({
         ...data,
@@ -386,12 +388,6 @@ const submit = () => {
                         </select>
                         <p v-if="frontErrors.position_id || form.errors.position_id" class="mt-1.5 text-xs font-medium text-red-600">
                             {{ frontErrors.position_id || form.errors.position_id }}
-                        </p>
-                    </div>
-                    <!-- Info posisi jika hanya ada 1 posisi (auto-selected) -->
-                    <div v-else-if="selectedDivision && availablePositions.length === 1" class="md:col-span-3">
-                        <p class="text-xs text-ink-500">
-                            Posisi PKL: <strong class="text-ink-800">{{ availablePositions[0].nama }}</strong>
                         </p>
                     </div>
 

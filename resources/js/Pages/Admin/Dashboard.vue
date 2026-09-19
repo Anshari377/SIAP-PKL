@@ -2,7 +2,6 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { Hourglass } from 'lucide-vue-next';
 import { getStatusLabel, getStatusBadgeClass, formatDate, isPastEndDate } from '@/utils/statusLabel';
 
 const props = defineProps({
@@ -12,12 +11,16 @@ const props = defineProps({
 });
 
 const stats = computed(() => props.stats);
-const pengajuanTerbaru = computed(() => props.pengajuanTerbaru.map((item) => ({
-    ...item,
-    nama: item.user?.name ?? '-',
-    bidang: item.division?.nama ?? '-',
-    tanggal: item.created_at,
-})));
+const pengajuanTerbaru = computed(() => props.pengajuanTerbaru.map((item) => {
+    const isPassed = item.status === 'accepted' && isPastEndDate(item.end_date);
+    return {
+        ...item,
+        status: isPassed ? 'completed' : item.status,
+        nama: item.user?.name ?? '-',
+        bidang: item.division?.nama ?? '-',
+        tanggal: item.created_at,
+    };
+}));
 const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
     ...item,
     nama: item.nama,
@@ -103,19 +106,9 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
                                 <td class="px-3 py-3 font-medium text-ink-900">{{ item.nama }}</td>
                                 <td class="px-3 py-3 text-ink-700">{{ item.posisi }}</td>
                                 <td class="px-3 py-3">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <span :class="getStatusBadgeClass(item.status)" class="badge">
-                                            {{ getStatusLabel(item.status) }}
-                                        </span>
-                                        <span
-                                            v-if="item.status === 'accepted' && isPastEndDate(item.end_date)"
-                                            class="badge badge-neutral cursor-help"
-                                            title="Masa PKL sudah berakhir, menunggu pembaruan status otomatis oleh sistem."
-                                        >
-                                            <Hourglass :size="14" :stroke-width="2" />
-                                            Menunggu pembaruan status
-                                        </span>
-                                    </div>
+                                    <span :class="getStatusBadgeClass(item.status)" class="badge">
+                                        {{ getStatusLabel(item.status) }}
+                                    </span>
                                 </td>
                             </tr>
                         </tbody>

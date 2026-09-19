@@ -29,15 +29,15 @@ trait InteractsWithDivisions
 
         if ($tanggalMulai && $tanggalSelesai) {
             $query->where('status', 'accepted')
-                ->where('start_date', '<=', $tanggalSelesai)
-                ->where('end_date', '>=', $tanggalMulai);
+                ->whereDate('start_date', '<=', $tanggalSelesai)
+                ->whereDate('end_date', '>=', $tanggalMulai);
         } elseif ($tanggalMulai) {
             $query->where('status', 'accepted')
-                ->where('end_date', '>=', $tanggalMulai);
+                ->whereDate('end_date', '>=', $tanggalMulai);
         } elseif ($tanggalSelesai) {
             $query->where('status', 'accepted')
-                ->where('start_date', '<=', $tanggalSelesai)
-                ->where('end_date', '>=', now()->toDateString());
+                ->whereDate('start_date', '<=', $tanggalSelesai)
+                ->whereDate('end_date', '>=', now()->toDateString());
         } else {
             $query->currentlyActive();
         }

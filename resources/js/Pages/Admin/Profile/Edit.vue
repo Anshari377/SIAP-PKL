@@ -1,21 +1,25 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { Info } from 'lucide-vue-next';
 
-const adminUser = ref({
-    name: 'Budi Santoso, S.Kom',
-    email: 'budi.santoso@diskominfo.kaltim.go.id',
-    role: 'Admin Instansi',
-    instansi: 'Dinas Komunikasi dan Informatika Provinsi Kalimantan Timur',
-    avatar: null,
-});
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const roles = computed(() => page.props.auth.roles || []);
+
+const adminUser = computed(() => ({
+    name: user.value?.name || '-',
+    email: user.value?.email || '-',
+    role: roles.value.includes('super_admin') ? 'Super Admin' : (roles.value.includes('agency_admin') ? 'Admin Instansi' : 'Admin'),
+    instansi: user.value?.instansi || 'Dinas Komunikasi dan Informatika Provinsi Kalimantan Timur',
+    avatar: user.value?.avatar || null,
+}));
 
 const avatarFailed = ref(false);
 
 const userInitials = computed(() => {
-    const name = adminUser.value.name ?? 'B S';
+    const name = adminUser.value.name !== '-' ? adminUser.value.name : 'A';
     return name
         .split(' ')
         .filter(Boolean)

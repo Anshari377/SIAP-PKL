@@ -62,8 +62,8 @@ class AdminApplicationController extends Controller
                 $occupied = Application::where('division_id', $division->id)
                     ->where('id', '!=', $application->id)
                     ->active()
-                    ->where('start_date', '<=', $endDate)
-                    ->where('end_date', '>=', $startDate)
+                    ->whereDate('start_date', '<=', $endDate)
+                    ->whereDate('end_date', '>=', $startDate)
                     ->withCount('members')
                     ->get()
                     ->sum(fn ($app) => max(1, $app->members_count));
@@ -195,11 +195,88 @@ class AdminApplicationController extends Controller
         $divisions = $this->divisionQuery($request->user())
             ->with('positions:id,division_id,nama')
             ->orderBy('nama')
-            ->get(['id', 'nama', 'quota']);
+            ->get()
+            ->map(function ($division) {
+                $occupied = Application::where('division_id', $division->id)
+                    ->active()
+                    ->withCount('members')
+                    ->get()
+                    ->sum(fn (Application $app) => max(1, $app->members_count));
+
+                $occupied = min($division->quota, $occupied);
+
+                return [
+                    'id'          => $division->id,
+                    'nama'        => $division->nama,
+                    'quota'       => $division->quota,
+                    'kuota_terisi' => $occupied,
+                    'kuota_sisa'   => max(0, $division->quota - $occupied),
+                    'positions'   => $division->positions->map(fn ($p) => [
+                        'id'   => $p->id,
+                        'nama' => $p->nama,
+                    ])->values(),
+                ];
+            });
 
         return Inertia::render('Admin/Peserta/WalkIn', [
             'activeNav' => 'admin.peserta.walk-in',
             'divisions' => $divisions,
+        ]);
+    }
+
+    public function walkInCheckAvailability(Request $request)
+    {
+        $request->validate([
+            'division_id' => ['required', 'integer', 'exists:divisions,id'],
+            'start_date'  => ['required', 'date'],
+            'end_date'    => ['required', 'date', 'after_or_equal:start_date'],
+        ]);
+
+        Application::syncCompletedApplications();
+
+        $divisionId = $request->input('division_id');
+        $startDate  = $request->input('start_date');
+        $endDate    = $request->input('end_date');
+
+        $division = $this->divisionQuery($request->user())->findOrFail($divisionId);
+
+        $overlappingApps = Application::where('division_id', $divisionId)
+            ->active()
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereDate('start_date', '<=', $endDate)
+                    ->whereDate('end_date', '>=', $startDate);
+            })
+            ->withCount('members')
+            ->get();
+
+        $currentOccupied = $overlappingApps->sum(fn (Application $app) => max(1, $app->members_count));
+        $availableSlots  = $division->quota - $currentOccupied;
+
+        if ($availableSlots >= 1) {
+            return response()->json([
+                'available'           => true,
+                'slot_tersedia'       => $availableSlots,
+                'slot_terisi_periode' => $currentOccupied,
+                'kuota_total'         => $division->quota,
+            ]);
+        }
+
+        $earliestEndDate = Application::where('division_id', $divisionId)
+            ->active()
+            ->whereDate('end_date', '>=', $startDate)
+            ->min('end_date');
+
+        $nextAvailableDate = $earliestEndDate
+            ? \Carbon\Carbon::parse($earliestEndDate)->addDay()->format('Y-m-d')
+            : $startDate;
+
+        return response()->json([
+            'available'           => false,
+            'message'             => 'Kuota penuh untuk periode ini',
+            'next_available_date' => $nextAvailableDate,
+            'slot_tersedia'       => 0,
+            'slot_terisi_periode' => $currentOccupied,
+            'kuota_total'         => $division->quota,
         ]);
     }
 
@@ -224,8 +301,8 @@ class AdminApplicationController extends Controller
             ->where('division_id', $division->id)
             ->active()
             ->where(function ($query) use ($data) {
-                $query->where('start_date', '<=', $data['end_date'])
-                    ->where('end_date', '>=', $data['start_date']);
+                $query->whereDate('start_date', '<=', $data['end_date'])
+                    ->whereDate('end_date', '>=', $data['start_date']);
             })
             ->withCount('members')
             ->get()

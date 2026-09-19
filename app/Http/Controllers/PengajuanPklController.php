@@ -28,7 +28,6 @@ class PengajuanPklController extends Controller
             ->map(function (Division $division) {
                 $occupied = Application::where('division_id', $division->id)
                     ->active()
-                    ->excludeDummy()
                     ->withCount('members')
                     ->get()
                     ->sum(fn (Application $app) => max(1, $app->members_count));
@@ -106,10 +105,9 @@ class PengajuanPklController extends Controller
 
         $overlappingApps = Application::where('division_id', $divisionId)
             ->active()
-            ->excludeDummy()
             ->where(function ($query) use ($startDate, $endDate) {
-                $query->where('start_date', '<=', $endDate)
-                    ->where('end_date', '>=', $startDate);
+                $query->whereDate('start_date', '<=', $endDate)
+                    ->whereDate('end_date', '>=', $startDate);
             })
             ->withCount('members')
             ->get();
@@ -213,10 +211,9 @@ class PengajuanPklController extends Controller
         // Hitung berapa slot yang terisi di periode yang diminta (overlap)
         $overlappingApps = Application::where('division_id', $divisionId)
             ->active()
-            ->excludeDummy()
             ->where(function ($query) use ($startDate, $endDate) {
-                $query->where('start_date', '<=', $endDate)
-                    ->where('end_date', '>=', $startDate);
+                $query->whereDate('start_date', '<=', $endDate)
+                    ->whereDate('end_date', '>=', $startDate);
             })
             ->withCount('members')
             ->get();
@@ -235,8 +232,7 @@ class PengajuanPklController extends Controller
 
         $earliestEndDate = Application::where('division_id', $divisionId)
             ->active()
-            ->excludeDummy()
-            ->where('end_date', '>=', $startDate)
+            ->whereDate('end_date', '>=', $startDate)
             ->min('end_date');
 
         $nextAvailableDate = $earliestEndDate
@@ -250,6 +246,32 @@ class PengajuanPklController extends Controller
             'slot_tersedia' => 0,
             'slot_terisi_periode' => $currentOccupied,
             'kuota_total' => $division->quota,
+        ]);
+    }
+
+    public function suratBalasan(Request $request, Application $application)
+    {
+        $user = $request->user();
+
+        $canAccess = $application->user_id === $user->id
+            || ($user->agency_id && $application->division && $application->division->agency_id === $user->agency_id)
+            || (method_exists($user, 'hasRole') && ($user->hasRole('super_admin') || $user->hasRole('super-admin') || $user->hasRole('agency_admin')));
+
+        abort_unless($canAccess, 403, 'Anda tidak memiliki akses ke surat balasan ini.');
+
+        abort_unless(
+            $application->surat_balasan_path && Storage::disk('public')->exists($application->surat_balasan_path),
+            404,
+            'Surat balasan belum tersedia atau tidak ditemukan.'
+        );
+
+        $filePath = Storage::disk('public')->path($application->surat_balasan_path);
+        $mime = mime_content_type($filePath) ?: 'application/pdf';
+        $filename = 'surat_balasan_'.Str::slug($application->user?->name ?? 'pkl').'.'.pathinfo($application->surat_balasan_path, PATHINFO_EXTENSION);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
         ]);
     }
 }

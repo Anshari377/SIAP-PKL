@@ -10,6 +10,8 @@ class StatusPendaftaranController extends Controller
 {
     public function index(Request $request)
     {
+        Application::syncCompletedApplications();
+
         $pendaftaran = Application::with(['division', 'members'])
             ->where('user_id', $request->user()->id)
             ->latest()

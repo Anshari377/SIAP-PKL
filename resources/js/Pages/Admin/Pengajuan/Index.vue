@@ -21,7 +21,6 @@ const filteredPengajuan = computed(() => {
         return {
             ...item,
             nama: item.members?.[0]?.name || item.user?.name || '-',
-            email: item.user?.email ?? '-',
             sekolah: sekolahKampus,
             instansi: sekolahKampus,
             bidang: item.division?.nama ?? '-',

@@ -3,14 +3,32 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
-import { Hourglass } from 'lucide-vue-next';
 import { getStatusLabel, getStatusBadgeClass, formatDate, formatStartDate, formatEndDate, isPastEndDate } from '@/utils/statusLabel';
 
 const props = defineProps({
     peserta: { type: Array, default: () => [] },
     stats: { type: Object, default: () => ({}) },
 });
-const stats = computed(() => props.stats);
+
+const normalizedPeserta = computed(() => {
+    return props.peserta.map((item) => {
+        const isPassed = item.status === 'accepted' && isPastEndDate(item.tanggal_selesai || item.end_date);
+        return {
+            ...item,
+            status: isPassed ? 'completed' : item.status,
+        };
+    });
+});
+
+const stats = computed(() => {
+    const list = normalizedPeserta.value;
+    return {
+        total_aktif: list.filter((p) => p.status === 'accepted').length,
+        selesai: list.filter((p) => p.status === 'completed').length,
+        baru_bulan_ini: props.stats?.baru_bulan_ini ?? 0,
+    };
+});
+
 const search = ref('');
 const statusFilter = ref('');
 
@@ -48,7 +66,7 @@ const confirmComplete = () => {
 };
 
 const filteredPeserta = computed(() => {
-    return props.peserta.filter((item) => {
+    return normalizedPeserta.value.filter((item) => {
         const matchSearch = !search.value || item.nama.toLowerCase().includes(search.value.toLowerCase());
         const matchStatus = !statusFilter.value || item.status === statusFilter.value;
         return matchSearch && matchStatus;
@@ -139,19 +157,9 @@ const filteredPeserta = computed(() => {
                                 <span v-else class="text-ink-300">—</span>
                             </td>
                             <td class="px-4 py-4">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <span :class="getStatusBadgeClass(item.status)" class="badge">
-                                        {{ getStatusLabel(item.status) }}
-                                    </span>
-                                    <span
-                                        v-if="item.status === 'accepted' && isPastEndDate(item.tanggal_selesai || item.end_date)"
-                                        class="badge badge-neutral cursor-help"
-                                        title="Masa PKL sudah berakhir, menunggu pembaruan status otomatis oleh sistem."
-                                    >
-                                        <Hourglass :size="14" :stroke-width="2" />
-                                        Menunggu pembaruan status
-                                    </span>
-                                </div>
+                                <span :class="getStatusBadgeClass(item.status)" class="badge">
+                                    {{ getStatusLabel(item.status) }}
+                                </span>
                             </td>
                             <td class="px-4 py-4 text-right">
                                 <button
