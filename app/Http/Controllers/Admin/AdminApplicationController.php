@@ -17,7 +17,7 @@ class AdminApplicationController extends Controller
     public function index(Request $request)
     {
         $applications = $this->queryFor($request->user())
-            ->with(['user.agency', 'division', 'members'])
+            ->with(['user.agency', 'division.positions', 'position', 'members'])
             ->latest()
             ->get();
 
@@ -30,7 +30,7 @@ class AdminApplicationController extends Controller
     public function show(Request $request, Application $pengajuan)
     {
         $application = $this->queryFor($request->user())
-            ->with(['user.agency', 'division.positions', 'members'])
+            ->with(['user.agency', 'division.positions', 'position', 'members'])
             ->findOrFail($pengajuan->id);
 
         return Inertia::render('Admin/Pengajuan/Show', [
@@ -118,12 +118,13 @@ class AdminApplicationController extends Controller
 
         $applications = $this->queryFor($request->user())
             ->whereIn('status', ['accepted', 'completed'])
-            ->with(['user.agency', 'division', 'members'])
+            ->with(['user.agency', 'division.positions', 'position', 'members'])
             ->latest()
             ->get();
 
         $participants = $applications->flatMap(function (Application $application) {
             $members = $application->members;
+            $posisiNama = 'PKL';
 
             if ($members->isEmpty()) {
                 return [[
@@ -133,7 +134,7 @@ class AdminApplicationController extends Controller
                     'nim' => '-',
                     'instansi' => $application->user?->agency?->name ?? '-',
                     'bidang' => $application->division?->nama ?? '-',
-                    'posisi' => 'Tidak ditentukan',
+                    'posisi' => $posisiNama,
                     'tanggal_mulai' => $application->start_date?->toDateString(),
                     'tanggal_selesai' => $application->end_date?->toDateString(),
                     'tanggal_pengajuan' => $application->created_at?->format('d M Y'),
@@ -148,7 +149,7 @@ class AdminApplicationController extends Controller
                 'nim' => $member->nim ?? '-',
                 'instansi' => $member->school,
                 'bidang' => $application->division?->nama ?? '-',
-                'posisi' => 'Tidak ditentukan',
+                'posisi' => $posisiNama,
                 'tanggal_mulai' => $application->start_date?->toDateString(),
                 'tanggal_selesai' => $application->end_date?->toDateString(),
                 'tanggal_pengajuan' => $application->created_at?->format('d M Y'),
@@ -190,6 +191,7 @@ class AdminApplicationController extends Controller
         Application::syncCompletedApplications();
 
         $divisions = $this->divisionQuery($request->user())
+            ->with('positions:id,division_id,nama')
             ->orderBy('nama')
             ->get(['id', 'nama', 'quota']);
 
@@ -208,6 +210,7 @@ class AdminApplicationController extends Controller
             'major' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:30'],
             'division_id' => ['required', 'integer', 'exists:divisions,id'],
+            'position_id' => ['nullable', 'integer', 'exists:positions,id'],
             'start_date' => ['required', 'date', 'after_or_equal:today'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date', 'after_or_equal:today'],
         ]);
@@ -241,9 +244,13 @@ class AdminApplicationController extends Controller
                 'tipe_pendaftaran' => 'individu',
             ]);
 
+            $positionId = $data['position_id']
+                ?? $division->positions()->orderBy('id')->value('id');
+
             $application = Application::create([
                 'user_id' => $user->id,
                 'division_id' => $division->id,
+                'position_id' => $positionId,
                 'start_date' => $data['start_date'],
                 'end_date' => $data['end_date'],
                 'status' => 'accepted',

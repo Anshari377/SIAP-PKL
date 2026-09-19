@@ -31,7 +31,7 @@ class AdminDashboardController extends Controller
                 'peserta_aktif' => (clone $applicationQuery)->currentlyActive()->count(),
             ],
             'pengajuanTerbaru' => (clone $applicationQuery)
-                ->with(['user', 'division'])
+                ->with(['user', 'division.positions', 'position'])
                 ->latest()
                 ->limit(5)
                 ->get(),

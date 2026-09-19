@@ -3,7 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
     divisions: { type: Array, default: () => [] },
 });
 
@@ -82,6 +82,7 @@ const submitForm = () => form.post(route('admin.peserta.walk-in.store'));
                             </select>
                             <p v-if="form.errors.division_id" class="field-error">{{ form.errors.division_id }}</p>
                         </div>
+
                         <div>
                             <label class="field-label" for="start_date">Tanggal Mulai</label>
                             <input id="start_date" v-model="form.start_date" type="date" :min="minStartDate" required class="field-input" />

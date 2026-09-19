@@ -16,6 +16,7 @@ class Application extends Model
     protected $fillable = [
         'user_id',
         'division_id',
+        'position_id',
         'start_date',
         'end_date',
         'status',
@@ -55,6 +56,11 @@ class Application extends Model
         return $this->belongsTo(Division::class);
     }
 
+    public function position(): BelongsTo
+    {
+        return $this->belongsTo(Position::class);
+    }
+
     public function members(): HasMany
     {
         return $this->hasMany(ApplicationMember::class);
@@ -88,9 +94,7 @@ class Application extends Model
         static::query()
             ->where('status', 'accepted')
             ->whereNotNull('end_date')
-            ->whereDate('end_date', '<=', now()->toDateString())
-            ->get()
-            ->filter(fn (self $app) => $app->end_date?->isPast())
+            ->whereDate('end_date', '<', now()->toDateString())
             ->each(function (self $app) {
                 $app->update(['status' => 'completed']);
             });

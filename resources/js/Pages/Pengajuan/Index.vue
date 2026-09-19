@@ -16,6 +16,7 @@ const initialDivision = new URLSearchParams(window.location.search).get('divisio
 
 const form = useForm({
     division_id: initialDivision,
+    position_id: '',
     start_date: '',
     end_date: '',
     tipe: 'individu',
@@ -84,6 +85,10 @@ const selectedDivision = computed(() => {
     return props.divisions.find((d) => String(d.id) === String(form.division_id)) || null;
 });
 
+const availablePositions = computed(() => {
+    return selectedDivision.value?.positions ?? [];
+});
+
 const sisaKuota = computed(() => {
     if (!selectedDivision.value) return 0;
     return Number(selectedDivision.value.kuota_sisa ?? selectedDivision.value.kuota ?? 0);
@@ -145,6 +150,20 @@ const checkAvailability = async () => {
         checking.value = false;
     }
 };
+
+watch(
+    () => form.division_id,
+    () => {
+        // Reset position when division changes
+        form.position_id = '';
+        availability.value = null;
+        // Auto-select if only one position available
+        const positions = selectedDivision.value?.positions ?? [];
+        if (positions.length === 1) {
+            form.position_id = String(positions[0].id);
+        }
+    }
+);
 
 watch(
     () => [form.division_id, form.start_date, form.end_date],
@@ -353,6 +372,26 @@ const submit = () => {
                         </select>
                         <p v-if="frontErrors.division_id || form.errors.division_id" class="mt-1.5 text-xs font-medium text-red-600">
                             {{ frontErrors.division_id || form.errors.division_id }}
+                        </p>
+                    </div>
+
+                    <!-- Posisi PKL — tampil hanya jika bidang dipilih dan memiliki > 1 posisi -->
+                    <div v-if="selectedDivision && availablePositions.length > 1" class="md:col-span-3">
+                        <label class="field-label" for="position_id">Posisi PKL</label>
+                        <select id="position_id" v-model="form.position_id" class="field-input">
+                            <option value="">-- Pilih Posisi --</option>
+                            <option v-for="pos in availablePositions" :key="pos.id" :value="String(pos.id)">
+                                {{ pos.nama }}
+                            </option>
+                        </select>
+                        <p v-if="frontErrors.position_id || form.errors.position_id" class="mt-1.5 text-xs font-medium text-red-600">
+                            {{ frontErrors.position_id || form.errors.position_id }}
+                        </p>
+                    </div>
+                    <!-- Info posisi jika hanya ada 1 posisi (auto-selected) -->
+                    <div v-else-if="selectedDivision && availablePositions.length === 1" class="md:col-span-3">
+                        <p class="text-xs text-ink-500">
+                            Posisi PKL: <strong class="text-ink-800">{{ availablePositions[0].nama }}</strong>
                         </p>
                     </div>
 

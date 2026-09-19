@@ -22,6 +22,7 @@ class PengajuanPklController extends Controller
             ->first();
 
         $divisions = Division::query()
+            ->with('positions:id,division_id,nama')
             ->orderBy('nama')
             ->get()
             ->map(function (Division $division) {
@@ -41,6 +42,10 @@ class PengajuanPklController extends Controller
                     'kuota' => $division->quota,
                     'kuota_terisi' => $occupied,
                     'kuota_sisa' => max(0, $division->quota - $occupied),
+                    'positions' => $division->positions->map(fn ($p) => [
+                        'id' => $p->id,
+                        'nama' => $p->nama,
+                    ])->values(),
                 ];
             });
 
