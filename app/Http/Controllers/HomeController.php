@@ -31,7 +31,7 @@ class HomeController extends Controller
             'pendaftaranAktif' => $pengajuanAktif ? [
                 'judul' => $pengajuanAktif->division?->nama ?? 'Pengajuan PKL',
                 'instansi' => $pengajuanAktif->division?->instansi ?? '-',
-                'tanggal' => $pengajuanAktif->created_at?->translatedFormat('d M Y') ?? '-',
+                'tanggal' => $pengajuanAktif->created_at?->toISOString(),
                 'status' => $pengajuanAktif->status,
             ] : null,
             'pengumuman' => [],
