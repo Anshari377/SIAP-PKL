@@ -17,7 +17,7 @@ trait InteractsWithDivisions
         $tanggalSelesai = $request->input('tanggal_selesai');
 
         return Division::query()
-            ->with('positions')
+            ->with(['positions', 'agency'])
             ->with(['applications' => fn ($query) => $this->applyAcceptedQuotaFilter($query, $tanggalMulai, $tanggalSelesai)->withCount('members')])
             ->get()
             ->map(fn (Division $division) => $this->withQuota($division));

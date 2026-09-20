@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\AuditLog;
 use App\Models\Division;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -41,7 +42,7 @@ class AdminApplicationController extends Controller
 
     public function updateStatus(Request $request, Application $pengajuan)
     {
-        $application = $this->queryFor($request->user())->with('division')->findOrFail($pengajuan->id);
+        $application = $this->queryFor($request->user())->with(['division.agency', 'user'])->findOrFail($pengajuan->id);
 
         abort_unless($application->status === 'pending', 422, 'Pengajuan ini sudah diproses.');
 
@@ -95,6 +96,27 @@ class AdminApplicationController extends Controller
             }
 
             $application->update($updateData);
+
+            if ($request->user()) {
+                $instansiNama = $application->division?->agency?->name
+                    ?? $application->division?->instansi
+                    ?? 'Instansi';
+
+                $statusMap = [
+                    'accepted' => 'Terima Pengajuan',
+                    'rejected' => 'Tolak Pengajuan',
+                    'revision' => 'Minta Revisi Pengajuan',
+                ];
+                $aksiLabel = $statusMap[$data['status']] ?? 'Update Status Pengajuan';
+
+                AuditLog::create([
+                    'user_id' => $request->user()->id,
+                    'user_nama' => $request->user()->name,
+                    'aksi' => "{$aksiLabel} ({$application->user?->name})",
+                    'instansi' => $instansiNama,
+                    'ip_address' => $request->ip(),
+                ]);
+            }
         });
 
         return back()->with('success', 'Status pengajuan berhasil diperbarui.');
@@ -344,6 +366,20 @@ class AdminApplicationController extends Controller
                 'major' => $data['major'],
                 'phone' => $data['phone'],
             ]);
+
+            if ($request->user()) {
+                $instansiNama = $division->agency?->name
+                    ?? $division->instansi
+                    ?? 'Instansi';
+
+                AuditLog::create([
+                    'user_id' => $request->user()->id,
+                    'user_nama' => $request->user()->name,
+                    'aksi' => "Tambah Walk-in ({$data['name']})",
+                    'instansi' => $instansiNama,
+                    'ip_address' => $request->ip(),
+                ]);
+            }
         });
 
         return to_route('admin.peserta.index')->with('success', 'Peserta walk-in berhasil diregistrasikan.');

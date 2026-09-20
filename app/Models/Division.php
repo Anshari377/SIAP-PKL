@@ -21,6 +21,11 @@ class Division extends Model
         'jurusan' => 'array',
     ];
 
+    public function getInstansiAttribute($value): string
+    {
+        return $this->agency?->name ?? (string) $value;
+    }
+
     public function positions(): HasMany
     {
         return $this->hasMany(Position::class);

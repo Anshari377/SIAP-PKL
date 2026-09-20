@@ -14,7 +14,10 @@ class SuperAdminInstansiController extends Controller
 {
     public function index(Request $request)
     {
-        $instansiList = Agency::withCount(['divisions as jumlah_bidang_pkl', 'users as jumlah_admin'])
+        $instansiList = Agency::withCount([
+            'divisions as jumlah_bidang_pkl',
+            'users as jumlah_admin' => fn ($query) => $query->role('agency_admin'),
+        ])
             ->orderBy('name')
             ->get()
             ->map(fn (Agency $agency) => [
@@ -39,11 +42,33 @@ class SuperAdminInstansiController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
+            'nama' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $exists = Agency::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($value))])->exists();
+                    if ($exists) {
+                        $fail('Nama instansi ini sudah terdaftar di sistem. Mohon gunakan nama instansi lain.');
+                    }
+                },
+            ],
             'tipe' => ['required', 'string', 'in:pemerintah,swasta,government,private'],
             'alamat' => ['nullable', 'string'],
             'maps_link' => ['nullable', 'url', 'max:500'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    if (! empty($value)) {
+                        $exists = Agency::whereRaw('LOWER(contact_email) = ?', [mb_strtolower(trim($value))])->exists();
+                        if ($exists) {
+                            $fail('Email kontak ini sudah terdaftar untuk instansi lain.');
+                        }
+                    }
+                },
+            ],
             'deskripsi' => ['nullable', 'string'],
         ]);
 
@@ -79,11 +104,37 @@ class SuperAdminInstansiController extends Controller
     public function update(Request $request, Agency $agency)
     {
         $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
+            'nama' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($agency) {
+                    $exists = Agency::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($value))])
+                        ->where('id', '!=', $agency->id)
+                        ->exists();
+                    if ($exists) {
+                        $fail('Nama instansi ini sudah terdaftar di sistem. Mohon gunakan nama instansi lain.');
+                    }
+                },
+            ],
             'tipe' => ['required', 'string', 'in:pemerintah,swasta,government,private'],
             'alamat' => ['nullable', 'string'],
             'maps_link' => ['nullable', 'url', 'max:500'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                function ($attribute, $value, $fail) use ($agency) {
+                    if (! empty($value)) {
+                        $exists = Agency::whereRaw('LOWER(contact_email) = ?', [mb_strtolower(trim($value))])
+                            ->where('id', '!=', $agency->id)
+                            ->exists();
+                        if ($exists) {
+                            $fail('Email kontak ini sudah terdaftar untuk instansi lain.');
+                        }
+                    }
+                },
+            ],
             'deskripsi' => ['nullable', 'string'],
         ]);
 
@@ -103,6 +154,10 @@ class SuperAdminInstansiController extends Controller
             'maps_link' => $data['maps_link'] ?? null,
             'contact_email' => $data['email'] ?? null,
             'description' => $data['deskripsi'] ?? null,
+        ]);
+
+        Division::where('agency_id', $agency->id)->update([
+            'instansi' => $agency->name,
         ]);
 
         if ($request->user()) {
@@ -143,9 +198,14 @@ class SuperAdminInstansiController extends Controller
 
     public function show(Agency $agency)
     {
-        $agency->load(['divisions.applications' => function ($q) {
-            $q->where('status', 'accepted')->withCount('members');
-        }, 'users']);
+        \App\Models\Application::syncCompletedApplications();
+
+        $agency->load([
+            'divisions.applications' => function ($q) {
+                $q->currentlyActive()->withCount('members');
+            },
+            'users' => fn ($q) => $q->role('agency_admin'),
+        ]);
 
         $bidangPkl = $agency->divisions->map(function (Division $division) {
             $terisi = $division->applications->sum(fn ($app) => max(1, $app->members_count ?? 1));
