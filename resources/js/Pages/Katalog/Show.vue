@@ -9,14 +9,25 @@ const props = defineProps({
 });
 
 const location = computed(() => ({
-    alamat: props.division?.alamat_lengkap || props.division?.agency?.alamat_lengkap || '',
+    alamat: props.division?.agency?.address || props.division?.alamat_lengkap || props.division?.agency?.alamat_lengkap || '',
     latitude: props.division?.latitude ?? props.division?.agency?.latitude ?? null,
     longitude: props.division?.longitude ?? props.division?.agency?.longitude ?? null,
 }));
 
 const mapsUrl = computed(() => {
-    if (location.value.latitude == null || location.value.longitude == null) return '';
-    return `https://www.google.com/maps?q=${location.value.latitude},${location.value.longitude}`;
+    if (props.division?.agency?.maps_url) {
+        return props.division.agency.maps_url;
+    }
+    if (props.division?.agency?.maps_link) {
+        return props.division.agency.maps_link;
+    }
+    if (location.value.latitude != null && location.value.longitude != null) {
+        return `https://www.google.com/maps?q=${location.value.latitude},${location.value.longitude}`;
+    }
+    if (location.value.alamat) {
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((props.division.instansi || '') + ' ' + location.value.alamat)}`;
+    }
+    return '';
 });
 
 const statusMeta = (division) => {

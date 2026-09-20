@@ -3,35 +3,31 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Instansi;
-use App\Models\PermohonanPkl;
+use App\Models\Agency;
+use App\Models\Application;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Spatie\Activitylog\Models\Activity;
 
 class SuperAdminDashboardController extends Controller
 {
     public function __invoke(Request $request)
     {
         $stats = [
-            'total_instansi' => Instansi::count(),
+            'total_instansi' => Agency::count(),
             'total_admin_aktif' => User::role('agency_admin')->count(),
-            'total_pengajuan_systemwide' => PermohonanPkl::count(),
+            'total_pengajuan_systemwide' => Application::count(),
             'undangan_menunggu' => User::role('agency_admin')->whereNull('google_id')->count(),
         ];
 
-        $aktivitasTerbaru = Activity::with(['causer.instansi'])->latest()->take(5)->get()->map(function ($log) {
-            $instansiId = $log->properties['instansi_id'] ?? $log->causer?->id_instansi;
-            $instansiName = $log->causer?->instansi?->nama_instansi
-                ?? ($instansiId ? Instansi::find($instansiId)?->nama_instansi : '-');
-
+        $aktivitasTerbaru = AuditLog::latest()->take(5)->get()->map(function (AuditLog $log) {
             return [
                 'id' => $log->id,
-                'waktu' => $log->created_at?->format('Y-m-d H:i:s') ?? '-',
-                'user' => $log->causer?->nama_lengkap ?? $log->causer?->email ?? 'Sistem',
-                'aksi' => $log->description,
-                'instansi' => $instansiName ?? '-',
+                'waktu' => $log->created_at ? $log->created_at->format('Y-m-d H:i:s') : '-',
+                'user' => $log->user_nama ?? 'Sistem',
+                'aksi' => $log->aksi,
+                'instansi' => $log->instansi ?? '-',
             ];
         });
 

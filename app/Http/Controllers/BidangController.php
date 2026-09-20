@@ -37,7 +37,7 @@ class BidangController extends Controller
 
     public function show(Request $request, string $division)
     {
-        $division = Division::with('positions')
+        $division = Division::with(['positions', 'agency'])
             ->where('slug', $division)
             ->withCount(['applications as accepted_count' => fn ($query) => $this->applyAcceptedQuotaFilter($query, $request->input('tanggal_mulai'), $request->input('tanggal_selesai'))])
             ->firstOrFail();

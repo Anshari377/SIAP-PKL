@@ -3,30 +3,31 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Instansi;
+use App\Models\Agency;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class UndanganController extends Controller
 {
     public function index()
     {
-        $instansiList = Instansi::orderBy('nama_instansi')->get(['id', 'nama_instansi']);
+        $instansiList = Agency::orderBy('name')->get(['id', 'name']);
 
         $adminUsers = User::role('agency_admin')
-            ->with('instansi')
+            ->with('agency')
             ->latest()
             ->get()
             ->map(fn (User $user) => [
                 'id' => $user->id,
                 'email' => $user->email,
-                'nama_lengkap' => $user->nama_lengkap,
-                'instansi' => $user->instansi?->nama_instansi ?? 'Belum Ditentukan',
-                'id_instansi' => $user->id_instansi,
-                'google_id' => $user->google_id,
-                'status_google' => $user->google_id ? 'connected' : 'draft',
-                'created_at' => $user->created_at?->format('Y-m-d H:i:s') ?? '-',
+                'nama' => $user->name,
+                'instansi' => $user->agency?->name ?? 'Belum Ditentukan',
+                'agency_id' => $user->agency_id,
+                'status' => $user->google_id ? 'claimed' : 'pending',
+                'tanggal' => $user->created_at ? $user->created_at->format('Y-m-d H:i:s') : '-',
             ]);
 
         return Inertia::render('SuperAdmin/Undangan/Index', [
@@ -39,62 +40,60 @@ class UndanganController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'agency_id' => ['required', 'exists:agencies,id'],
             'email' => ['required', 'email', 'max:255'],
-            'id_instansi' => ['required', 'integer', 'exists:instansi,id'],
-            'nama_lengkap' => ['nullable', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $instansi = Instansi::findOrFail($data['id_instansi']);
+        $agency = Agency::findOrFail($data['agency_id']);
         $user = User::where('email', $data['email'])->first();
 
         if ($user) {
-            // Bind existing user to agency_admin role and target instansi
             $user->update([
-                'id_instansi' => $instansi->id,
+                'agency_id' => $agency->id,
             ]);
-            $user->syncRoles(['agency_admin']);
-            $action = "Assign Admin Exists ({$user->email}) ke Instansi {$instansi->nama_instansi}";
+            if (! $user->hasRole('agency_admin')) {
+                $user->assignRole('agency_admin');
+            }
         } else {
-            // Direct provisioning: insert new admin user record
-            $name = $data['nama_lengkap'] ?: strstr($data['email'], '@', true);
-            $name = ucwords(str_replace(['.', '_', '-'], ' ', $name));
-
+            $name = $data['name'] ?? ucwords(str_replace(['.', '_', '-'], ' ', strstr($data['email'], '@', true)));
             $user = User::create([
+                'name' => $name,
                 'email' => $data['email'],
-                'nama_lengkap' => $name,
-                'id_instansi' => $instansi->id,
+                'agency_id' => $agency->id,
+                'password' => bcrypt(Str::random(16)),
             ]);
-            $user->syncRoles(['agency_admin']);
-            $action = "Tambah Admin Baru ({$user->email}) ke Instansi {$instansi->nama_instansi}";
+            $user->assignRole('agency_admin');
         }
 
-        activity()
-            ->causedBy($request->user())
-            ->performedOn($user)
-            ->withProperties([
-                'ip' => $request->ip(),
-                'instansi_id' => $instansi->id,
-                'email' => $user->email,
-            ])
-            ->log('Undang Admin');
+        if ($request->user()) {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'user_nama' => $request->user()->name,
+                'aksi' => "Undang Admin ({$user->email})",
+                'instansi' => $agency->name,
+                'ip_address' => $request->ip(),
+            ]);
+        }
 
-        return redirect()->back()->with('success', "Admin {$user->email} berhasil ditambahkan/dihubungkan ke {$instansi->nama_instansi}.");
+        return redirect()->back()->with('success', "Undangan berhasil dikirim ke {$user->email}.");
     }
 
-    public function destroy(User $user)
+    public function destroy(User $user, Request $request)
     {
-        activity()
-            ->causedBy(auth()->user())
-            ->performedOn($user)
-            ->withProperties([
-                'ip' => request()->ip(),
-                'email' => $user->email,
-            ])
-            ->log('Hapus Admin');
+        if ($request->user()) {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'user_nama' => $request->user()->name,
+                'aksi' => "Batalkan Undangan Admin ({$user->email})",
+                'instansi' => $user->agency?->name ?? '-',
+                'ip_address' => $request->ip(),
+            ]);
+        }
 
         $user->removeRole('agency_admin');
-        $user->update(['id_instansi' => null]);
+        $user->update(['agency_id' => null]);
 
-        return redirect()->back()->with('success', "Akses admin untuk {$user->email} telah dicabut.");
+        return redirect()->back()->with('success', "Akses/undangan admin untuk {$user->email} telah dicabut.");
     }
 }

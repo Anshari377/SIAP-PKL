@@ -1,25 +1,22 @@
 <script setup>
 import SuperAdminLayout from '@/Layouts/SuperAdminLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { ref, reactive, computed } from 'vue';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 
+const props = defineProps({
+    instansiList: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const page = usePage();
 const search = ref('');
 const tipeFilter = ref('');
 
-const instansiList = ref([
-    { id: 1, nama: 'Dinas Komunikasi dan Informatika Kaltim', tipe: 'pemerintah', alamat: 'Jl. Kesuma Bangsa No. 12, Samarinda', email: 'admin@dkominfo.kaltimprov.go.id', jumlah_bidang_pkl: 6, jumlah_admin: 3 },
-    { id: 2, nama: 'Dinas Pendidikan dan Kebudayaan Kaltim', tipe: 'pemerintah', alamat: 'Jl. Bhayangkara No. 9, Samarinda', email: 'disdik@kaltimprov.go.id', jumlah_bidang_pkl: 4, jumlah_admin: 2 },
-    { id: 3, nama: 'RSUD Abdul Wahab Sjahranie', tipe: 'pemerintah', alamat: 'Jl. Palaran Ring Road I, Samarinda', email: 'humas@rsudaws.co.id', jumlah_bidang_pkl: 5, jumlah_admin: 4 },
-    { id: 4, nama: 'Bankaltimtara', tipe: 'swasta', alamat: 'Jl. Jend. Sudirman No. 20, Samarinda', email: 'cs@bankaltimtara.co.id', jumlah_bidang_pkl: 3, jumlah_admin: 2 },
-    { id: 5, nama: 'PT Pegadaian Cabang Samarinda', tipe: 'swasta', alamat: 'Jl. Pangeran Suriansyah No. 5, Samarinda', email: 'samarinda@pegadaian.co.id', jumlah_bidang_pkl: 2, jumlah_admin: 1 },
-    { id: 6, nama: 'Dinas Kesehatan Kaltim', tipe: 'pemerintah', alamat: 'Jl. Awang Long No. 10, Samarinda', email: 'dinkes@kaltimprov.go.id', jumlah_bidang_pkl: 4, jumlah_admin: 2 },
-    { id: 7, nama: 'PT Telkom Indonesia Witel Samarinda', tipe: 'swasta', alamat: 'Jl. Dr. Sutomo No. 3, Samarinda', email: 'hcsam@telkom.co.id', jumlah_bidang_pkl: 3, jumlah_admin: 3 },
-    { id: 8, nama: 'Dinas Pemuda dan Olahraga Kaltim', tipe: 'pemerintah', alamat: 'Jl. RE Martadinata No. 7, Samarinda', email: 'dispora@kaltimprov.go.id', jumlah_bidang_pkl: 2, jumlah_admin: 1 },
-]);
-
 const filteredInstansi = computed(() => {
-    return instansiList.value.filter((item) => {
-        const matchSearch = !search.value || item.nama.toLowerCase().includes(search.value.toLowerCase());
+    return props.instansiList.filter((item) => {
+        const matchSearch = !search.value || (item.nama && item.nama.toLowerCase().includes(search.value.toLowerCase()));
         const matchTipe = !tipeFilter.value || item.tipe === tipeFilter.value;
         return matchSearch && matchTipe;
     });
@@ -33,22 +30,38 @@ const tipeLabel = (tipe) => {
     return tipe === 'pemerintah' ? 'Pemerintah' : 'Swasta';
 };
 
+// Create / Edit Modal state
 const showModal = ref(false);
-const form = reactive({
+const isEditing = ref(false);
+const editingId = ref(null);
+
+const form = useForm({
     nama: '',
     tipe: 'pemerintah',
     alamat: '',
+    maps_link: '',
     email: '',
+    deskripsi: '',
 });
 
-const showSuccess = ref(false);
+const openCreateModal = () => {
+    isEditing.value = false;
+    editingId.value = null;
+    form.reset();
+    form.clearErrors();
+    showModal.value = true;
+};
 
-const openModal = () => {
-    form.nama = '';
-    form.tipe = 'pemerintah';
-    form.alamat = '';
-    form.email = '';
-    showSuccess.value = false;
+const openEditModal = (item) => {
+    isEditing.value = true;
+    editingId.value = item.id;
+    form.clearErrors();
+    form.nama = item.nama || '';
+    form.tipe = item.tipe || 'pemerintah';
+    form.alamat = item.alamat === '-' ? '' : item.alamat || '';
+    form.maps_link = item.maps_link || '';
+    form.email = item.email === '-' ? '' : item.email || '';
+    form.deskripsi = item.deskripsi === '-' ? '' : item.deskripsi || '';
     showModal.value = true;
 };
 
@@ -57,19 +70,27 @@ const closeModal = () => {
 };
 
 const submitForm = () => {
-    if (!form.nama || !form.alamat || !form.email) return;
-    instansiList.value.push({
-        id: instansiList.value.length + 1,
-        nama: form.nama,
-        tipe: form.tipe,
-        alamat: form.alamat,
-        email: form.email,
-        jumlah_bidang_pkl: 0,
-        jumlah_admin: 0,
-    });
-    showModal.value = false;
-    showSuccess.value = true;
-    setTimeout(() => { showSuccess.value = false; }, 3000);
+    if (isEditing.value && editingId.value) {
+        form.put(route('superadmin.instansi.update', editingId.value), {
+            onSuccess: () => {
+                closeModal();
+                form.reset();
+            },
+        });
+    } else {
+        form.post(route('superadmin.instansi.store'), {
+            onSuccess: () => {
+                closeModal();
+                form.reset();
+            },
+        });
+    }
+};
+
+const confirmDelete = (item) => {
+    if (confirm(`Yakin ingin menghapus instansi "${item.nama}"? Semua divisi terkait akan dilepas keterkaitannya.`)) {
+        router.delete(route('superadmin.instansi.destroy', item.id));
+    }
 };
 </script>
 
@@ -77,17 +98,17 @@ const submitForm = () => {
     <Head title="Manajemen Instansi" />
     <SuperAdminLayout title="Manajemen Instansi">
         <!-- Success Alert -->
-        <div v-if="showSuccess" class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 shadow-sm">
-            Instansi baru berhasil ditambahkan! (Demo — data belum tersimpan)
+        <div v-if="page.props.flash?.success" class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 shadow-sm flex items-center justify-between">
+            <span>{{ page.props.flash.success }}</span>
         </div>
 
         <!-- Header Action -->
         <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="font-display text-xl font-bold text-ink-900">Daftar Instansi PKL</h2>
-                <p class="mt-1 text-sm text-ink-500">Kelola seluruh instansi mitra PKL yang terdaftar di sistem.</p>
+                <p class="mt-1 text-sm text-ink-500">Kelola seluruh instansi mitra PKL, alamat, dan tautan peta lokasi.</p>
             </div>
-            <button @click="openModal" class="btn-primary w-full sm:w-auto shrink-0">
+            <button @click="openCreateModal" class="btn-primary w-full sm:w-auto shrink-0">
                 <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
@@ -119,13 +140,13 @@ const submitForm = () => {
         <!-- Instansi Table -->
         <section class="glass-panel p-6 sm:p-8">
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[900px] text-left text-sm">
+                <table class="w-full min-w-[950px] text-left text-sm">
                     <thead class="border-b border-ink-300/35 text-xs uppercase tracking-wider text-ink-500">
                         <tr>
                             <th class="px-4 py-3 w-12">No</th>
                             <th class="px-4 py-3">Nama Instansi</th>
                             <th class="px-4 py-3">Tipe</th>
-                            <th class="px-4 py-3">Alamat</th>
+                            <th class="px-4 py-3">Alamat & Tautan Peta</th>
                             <th class="px-4 py-3">Email Kontak</th>
                             <th class="px-4 py-3 text-center">Bidang PKL</th>
                             <th class="px-4 py-3 text-center">Admin</th>
@@ -150,14 +171,39 @@ const submitForm = () => {
                                     {{ tipeLabel(item.tipe) }}
                                 </span>
                             </td>
-                            <td class="px-4 py-4 text-ink-700">{{ item.alamat }}</td>
+                            <td class="px-4 py-4">
+                                <div class="text-ink-700 max-w-xs truncate">{{ item.alamat }}</div>
+                                <a
+                                    v-if="item.maps_url"
+                                    :href="item.maps_url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="inline-flex items-center gap-1 mt-1 text-xs font-medium text-forest-700 hover:text-forest-900 hover:underline"
+                                >
+                                    <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                    Buka Lokasi Peta
+                                    <svg viewBox="0 0 24 24" class="h-3 w-3 shrink-0 opacity-70" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                                    </svg>
+                                </a>
+                            </td>
                             <td class="px-4 py-4 text-ink-500">{{ item.email }}</td>
                             <td class="px-4 py-4 text-center font-semibold text-ink-900">{{ item.jumlah_bidang_pkl }}</td>
                             <td class="px-4 py-4 text-center font-semibold text-ink-900">{{ item.jumlah_admin }}</td>
-                            <td class="px-4 py-4 text-right">
-                                <Link :href="route('superadmin.instansi.show', item.id)" class="btn-secondary px-3 py-1.5 text-xs">
-                                    Lihat Detail
-                                </Link>
+                            <td class="px-4 py-4 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <Link :href="route('superadmin.instansi.show', item.id)" class="btn-secondary px-2.5 py-1 text-xs" title="Lihat Detail">
+                                        Detail
+                                    </Link>
+                                    <button @click="openEditModal(item)" class="rounded-lg border border-forest-300 bg-forest-50 px-2.5 py-1 text-xs font-semibold text-forest-800 hover:bg-forest-100 transition" title="Edit Instansi">
+                                        Ubah
+                                    </button>
+                                    <button @click="confirmDelete(item)" class="rounded-lg border border-rose-300 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition" title="Hapus Instansi">
+                                        Hapus
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         <tr v-if="filteredInstansi.length === 0">
@@ -170,7 +216,7 @@ const submitForm = () => {
             </div>
         </section>
 
-        <!-- Tambah Instansi Modal -->
+        <!-- Modal Form (Tambah / Edit Instansi) -->
         <Teleport to="body">
             <Transition
                 enter-active-class="ease-out duration-200"
@@ -182,41 +228,67 @@ const submitForm = () => {
             >
                 <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div class="absolute inset-0 bg-forest-950/50 backdrop-blur-sm" @click="closeModal" />
-                    <div class="relative w-full max-w-lg rounded-3xl border border-white/70 bg-white/90 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+                    <div class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
                         <div class="mb-6 flex items-center justify-between">
                             <div>
-                                <h3 class="font-display text-xl font-bold text-ink-900">Tambah Instansi Baru</h3>
-                                <p class="mt-1 text-sm text-ink-500">Registrasi instansi mitra PKL ke dalam sistem.</p>
+                                <h3 class="font-display text-xl font-bold text-ink-900">
+                                    {{ isEditing ? 'Ubah Data Instansi' : 'Tambah Instansi Baru' }}
+                                </h3>
+                                <p class="mt-1 text-sm text-ink-500">
+                                    {{ isEditing ? 'Perbarui informasi instansi mitra PKL.' : 'Registrasi instansi mitra PKL ke dalam sistem.' }}
+                                </p>
                             </div>
                             <button @click="closeModal" class="grid h-8 w-8 place-items-center rounded-full text-ink-500 hover:bg-ink-100 transition">
                                 <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
                         </div>
 
-                        <form @submit.prevent="submitForm" class="space-y-5">
+                        <form @submit.prevent="submitForm" class="space-y-4">
                             <div>
                                 <label class="field-label">Nama Instansi</label>
                                 <input v-model="form.nama" type="text" required placeholder="Contoh: Dinas Komunikasi dan Informatika Kaltim" class="field-input" />
+                                <div v-if="form.errors.nama" class="mt-1 text-xs text-rose-500">{{ form.errors.nama }}</div>
                             </div>
+
                             <div>
                                 <label class="field-label">Tipe Instansi</label>
                                 <select v-model="form.tipe" class="field-input">
                                     <option value="pemerintah">Pemerintah</option>
                                     <option value="swasta">Swasta</option>
                                 </select>
+                                <div v-if="form.errors.tipe" class="mt-1 text-xs text-rose-500">{{ form.errors.tipe }}</div>
                             </div>
+
                             <div>
-                                <label class="field-label">Alamat</label>
-                                <input v-model="form.alamat" type="text" required placeholder="Alamat lengkap instansi" class="field-input" />
+                                <label class="field-label">Alamat Lengkap</label>
+                                <input v-model="form.alamat" type="text" placeholder="Jl. Kesuma Bangsa No. 12, Samarinda" class="field-input" />
+                                <div v-if="form.errors.alamat" class="mt-1 text-xs text-rose-500">{{ form.errors.alamat }}</div>
                             </div>
+
+                            <div>
+                                <label class="field-label">Tautan Peta (Google Maps URL)</label>
+                                <input v-model="form.maps_link" type="url" placeholder="https://maps.google.com/?q=..." class="field-input" />
+                                <p class="mt-1 text-[11px] text-ink-400">Masukkan URL lengkap Google Maps lokasi instansi.</p>
+                                <div v-if="form.errors.maps_link" class="mt-1 text-xs text-rose-500">{{ form.errors.maps_link }}</div>
+                            </div>
+
                             <div>
                                 <label class="field-label">Email Kontak</label>
-                                <input v-model="form.email" type="email" required placeholder="admin@instansi.co.id" class="field-input" />
+                                <input v-model="form.email" type="email" placeholder="admin@instansi.go.id" class="field-input" />
+                                <div v-if="form.errors.email" class="mt-1 text-xs text-rose-500">{{ form.errors.email }}</div>
+                            </div>
+
+                            <div>
+                                <label class="field-label">Deskripsi Ringkas</label>
+                                <textarea v-model="form.deskripsi" rows="3" placeholder="Profil/deskripsi singkat instansi..." class="field-input"></textarea>
+                                <div v-if="form.errors.deskripsi" class="mt-1 text-xs text-rose-500">{{ form.errors.deskripsi }}</div>
                             </div>
 
                             <div class="flex items-center justify-end gap-3 pt-4 border-t border-ink-300/30">
                                 <button type="button" @click="closeModal" class="btn-secondary">Batal</button>
-                                <button type="submit" class="btn-primary">Simpan Instansi</button>
+                                <button type="submit" :disabled="form.processing" class="btn-primary">
+                                    {{ form.processing ? 'Menyimpan...' : (isEditing ? 'Simpan Perubahan' : 'Simpan Instansi') }}
+                                </button>
                             </div>
                         </form>
                     </div>

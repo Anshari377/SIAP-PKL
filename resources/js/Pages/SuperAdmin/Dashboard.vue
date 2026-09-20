@@ -1,24 +1,25 @@
 <script setup>
 import SuperAdminLayout from '@/Layouts/SuperAdminLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
 
-const stats = ref({
-    total_instansi: 15,
-    total_admin_aktif: 18,
-    total_pengajuan_systemwide: 342,
-    undangan_menunggu: 3,
+const props = defineProps({
+    stats: {
+        type: Object,
+        default: () => ({
+            total_instansi: 0,
+            total_admin_aktif: 0,
+            total_pengajuan_systemwide: 0,
+            undangan_menunggu: 0,
+        }),
+    },
+    aktivitasTerbaru: {
+        type: Array,
+        default: () => [],
+    },
 });
 
-const aktivitasTerbaru = ref([
-    { id: 1, waktu: '2026-09-08 09:12:00', user: 'Budi Santoso, S.Kom', aksi: 'Terima Pengajuan', instansi: 'Diskominfo Samarinda' },
-    { id: 2, waktu: '2026-09-08 08:47:00', user: 'Siti Aminah', aksi: 'Tambah Walk-in', instansi: 'RSUD Abdul Wahab Sjahranie' },
-    { id: 3, waktu: '2026-09-07 15:30:00', user: 'Budi Santoso, S.Kom', aksi: 'Ubah Kuota', instansi: 'Diskominfo Samarinda' },
-    { id: 4, waktu: '2026-09-07 11:05:00', user: 'Andi Wijaya', aksi: 'Tolak Pengajuan', instansi: 'Dinas Pendidikan Kaltim' },
-    { id: 5, waktu: '2026-09-07 10:22:00', user: 'Rina Marlina', aksi: 'Undang Admin', instansi: 'BANKALTIMTARA' },
-]);
-
 const aksiBadge = (aksi) => {
+    if (!aksi) return 'badge-info';
     if (aksi.includes('Tolak')) return 'badge-danger';
     if (aksi.includes('Terima')) return 'badge-success';
     if (aksi.startsWith('Ubah')) return 'badge-warning';
@@ -50,7 +51,7 @@ const aksiBadge = (aksi) => {
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Total Admin Instansi Aktif</p>
-                    <span class="rounded-full bg-forest-500/10 px-2 py-0.5 text-[10px] font-semibold text-forest-600">+2</span>
+                    <span class="rounded-full bg-forest-500/10 px-2 py-0.5 text-[10px] font-semibold text-forest-600">Terdaftar</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-ink-900">{{ stats.total_admin_aktif }}</p>
                 <svg class="mt-3 h-6 w-full text-forest-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">
@@ -108,6 +109,11 @@ const aksiBadge = (aksi) => {
                                 </span>
                             </td>
                             <td class="px-3 py-3 text-ink-700">{{ item.instansi }}</td>
+                        </tr>
+                        <tr v-if="aktivitasTerbaru.length === 0">
+                            <td colspan="4" class="px-3 py-6 text-center text-ink-500">
+                                Belum ada catatan aktivitas terbaru.
+                            </td>
                         </tr>
                     </tbody>
                 </table>

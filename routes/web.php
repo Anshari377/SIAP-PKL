@@ -14,6 +14,9 @@ use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\StatusPendaftaranController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\AuditLogController;
+use App\Http\Controllers\SuperAdmin\SuperAdminDashboardController;
+use App\Http\Controllers\SuperAdmin\SuperAdminInstansiController;
+use App\Http\Controllers\SuperAdmin\UndanganController;
 
 Route::middleware(['auth', 'role:super-admin']) // sesuaikan middleware role-mu
     ->prefix('super-admin')
@@ -84,14 +87,19 @@ Route::middleware('auth')->group(function () {
 
     // Super Admin Portal Routes
     Route::prefix('super-admin')->name('superadmin.')->middleware('ensure.super_admin')->group(function () {
-        Route::get('/dashboard', fn () => \Inertia\Inertia::render('SuperAdmin/Dashboard', ['activeNav' => 'superadmin.dashboard']))->name('dashboard');
+        Route::get('/dashboard', SuperAdminDashboardController::class)->name('dashboard');
 
-        Route::get('/instansi', fn () => \Inertia\Inertia::render('SuperAdmin/Instansi/Index', ['activeNav' => 'superadmin.instansi']))->name('instansi.index');
-        Route::get('/instansi/{instansi}', fn () => \Inertia\Inertia::render('SuperAdmin/Instansi/Show', ['activeNav' => 'superadmin.instansi']))->name('instansi.show');
+        Route::get('/instansi', [SuperAdminInstansiController::class, 'index'])->name('instansi.index');
+        Route::post('/instansi', [SuperAdminInstansiController::class, 'store'])->name('instansi.store');
+        Route::get('/instansi/{agency}', [SuperAdminInstansiController::class, 'show'])->name('instansi.show');
+        Route::put('/instansi/{agency}', [SuperAdminInstansiController::class, 'update'])->name('instansi.update');
+        Route::delete('/instansi/{agency}', [SuperAdminInstansiController::class, 'destroy'])->name('instansi.destroy');
 
-        Route::get('/undangan', fn () => \Inertia\Inertia::render('SuperAdmin/Undangan/Index', ['activeNav' => 'superadmin.undangan']))->name('undangan.index');
+        Route::get('/undangan', [UndanganController::class, 'index'])->name('undangan.index');
+        Route::post('/undangan', [UndanganController::class, 'store'])->name('undangan.store');
+        Route::delete('/undangan/{user}', [UndanganController::class, 'destroy'])->name('undangan.destroy');
 
-        Route::get('/audit-log', fn () => \Inertia\Inertia::render('SuperAdmin/AuditLog/Index', ['activeNav' => 'superadmin.audit-log']))->name('audit-log.index');
+        Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
     });
 });
 

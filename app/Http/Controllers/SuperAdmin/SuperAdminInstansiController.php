@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Instansi;
+use App\Models\Agency;
+use App\Models\AuditLog;
+use App\Models\Division;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,18 +14,20 @@ class SuperAdminInstansiController extends Controller
 {
     public function index(Request $request)
     {
-        $instansiList = Instansi::withCount(['subInstansi as jumlah_bidang_pkl', 'users as jumlah_admin'])
-            ->orderBy('nama_instansi')
+        $instansiList = Agency::withCount(['divisions as jumlah_bidang_pkl', 'users as jumlah_admin'])
+            ->orderBy('name')
             ->get()
-            ->map(fn (Instansi $ins) => [
-                'id' => $ins->id,
-                'nama' => $ins->nama_instansi,
-                'nama_instansi' => $ins->nama_instansi,
-                'deskripsi_singkat' => $ins->deskripsi_singkat,
-                'alamat' => $ins->alamat ?? 'Alamat belum diisi',
-                'status' => $ins->status ?? 'aktif',
-                'jumlah_bidang_pkl' => $ins->jumlah_bidang_pkl,
-                'jumlah_admin' => $ins->jumlah_admin,
+            ->map(fn (Agency $agency) => [
+                'id' => $agency->id,
+                'nama' => $agency->name,
+                'tipe' => $agency->type === 'government' ? 'pemerintah' : ($agency->type === 'private' ? 'swasta' : $agency->type),
+                'alamat' => $agency->address ?? '-',
+                'maps_link' => $agency->maps_link,
+                'maps_url' => $agency->maps_url,
+                'email' => $agency->contact_email ?? '-',
+                'deskripsi' => $agency->description ?? '-',
+                'jumlah_bidang_pkl' => $agency->jumlah_bidang_pkl,
+                'jumlah_admin' => $agency->jumlah_admin,
             ]);
 
         return Inertia::render('SuperAdmin/Instansi/Index', [
@@ -35,52 +39,152 @@ class SuperAdminInstansiController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nama_instansi' => ['required', 'string', 'max:255'],
+            'nama' => ['required', 'string', 'max:255'],
+            'tipe' => ['required', 'string', 'in:pemerintah,swasta,government,private'],
             'alamat' => ['nullable', 'string'],
-            'deskripsi_singkat' => ['nullable', 'string'],
+            'maps_link' => ['nullable', 'url', 'max:500'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
         ]);
 
-        $instansi = Instansi::create([
-            'nama_instansi' => $data['nama_instansi'],
-            'alamat' => $data['alamat'] ?? null,
-            'deskripsi_singkat' => $data['deskripsi_singkat'] ?? null,
-            'status' => 'aktif',
+        $typeMap = [
+            'pemerintah' => 'government',
+            'swasta' => 'private',
+            'government' => 'government',
+            'private' => 'private',
+        ];
+
+        $agency = Agency::create([
+            'name' => $data['nama'],
+            'type' => $typeMap[$data['tipe']] ?? 'government',
+            'address' => $data['alamat'] ?? null,
+            'maps_link' => $data['maps_link'] ?? null,
+            'contact_email' => $data['email'] ?? null,
+            'description' => $data['deskripsi'] ?? null,
         ]);
 
-        activity()
-            ->causedBy($request->user())
-            ->performedOn($instansi)
-            ->withProperties([
-                'ip' => $request->ip(),
-                'instansi_id' => $instansi->id,
-            ])
-            ->log('Tambah Instansi');
+        if ($request->user()) {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'user_nama' => $request->user()->name,
+                'aksi' => "Tambah Instansi Baru ({$agency->name})",
+                'instansi' => $agency->name,
+                'ip_address' => $request->ip(),
+            ]);
+        }
 
-        return redirect()->back()->with('success', "Instansi '{$instansi->nama_instansi}' berhasil ditambahkan.");
+        return redirect()->back()->with('success', "Instansi '{$agency->name}' berhasil ditambahkan.");
     }
 
-    public function show(Instansi $instansi)
+    public function update(Request $request, Agency $agency)
     {
-        $instansi->load(['subInstansi', 'users']);
-
-        $admins = $instansi->users->map(fn (User $user) => [
-            'id' => $user->id,
-            'nama_lengkap' => $user->nama_lengkap,
-            'email' => $user->email,
-            'google_id' => $user->google_id,
-            'status_google' => $user->google_id ? 'connected' : 'draft',
+        $data = $request->validate([
+            'nama' => ['required', 'string', 'max:255'],
+            'tipe' => ['required', 'string', 'in:pemerintah,swasta,government,private'],
+            'alamat' => ['nullable', 'string'],
+            'maps_link' => ['nullable', 'url', 'max:500'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
         ]);
+
+        $typeMap = [
+            'pemerintah' => 'government',
+            'swasta' => 'private',
+            'government' => 'government',
+            'private' => 'private',
+        ];
+
+        $oldName = $agency->name;
+
+        $agency->update([
+            'name' => $data['nama'],
+            'type' => $typeMap[$data['tipe']] ?? 'government',
+            'address' => $data['alamat'] ?? null,
+            'maps_link' => $data['maps_link'] ?? null,
+            'contact_email' => $data['email'] ?? null,
+            'description' => $data['deskripsi'] ?? null,
+        ]);
+
+        if ($request->user()) {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'user_nama' => $request->user()->name,
+                'aksi' => "Ubah Data Instansi ({$agency->name})",
+                'instansi' => $agency->name,
+                'ip_address' => $request->ip(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Data instansi '{$agency->name}' berhasil diperbarui.");
+    }
+
+    public function destroy(Request $request, Agency $agency)
+    {
+        $agencyName = $agency->name;
+
+        // Unlink related divisions and users safely
+        Division::where('agency_id', $agency->id)->update(['agency_id' => null]);
+        User::where('agency_id', $agency->id)->update(['agency_id' => null]);
+
+        $agency->delete();
+
+        if ($request->user()) {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'user_nama' => $request->user()->name,
+                'aksi' => "Hapus Instansi ({$agencyName})",
+                'instansi' => $agencyName,
+                'ip_address' => $request->ip(),
+            ]);
+        }
+
+        return redirect()->route('superadmin.instansi.index')->with('success', "Instansi '{$agencyName}' berhasil dihapus.");
+    }
+
+    public function show(Agency $agency)
+    {
+        $agency->load(['divisions.applications' => function ($q) {
+            $q->where('status', 'accepted')->withCount('members');
+        }, 'users']);
+
+        $bidangPkl = $agency->divisions->map(function (Division $division) {
+            $terisi = $division->applications->sum(fn ($app) => max(1, $app->members_count ?? 1));
+            $sisa = max(0, $division->quota - $terisi);
+            $status = $sisa <= 0 ? 'penuh' : 'aktif';
+
+            return [
+                'id' => $division->id,
+                'nama' => $division->nama,
+                'kuota' => $division->quota,
+                'terisi' => $terisi,
+                'status' => $status,
+            ];
+        });
+
+        $adminList = $agency->users->map(function (User $user) {
+            return [
+                'id' => $user->id,
+                'nama' => $user->name,
+                'email' => $user->email,
+                'status' => true,
+            ];
+        });
 
         return Inertia::render('SuperAdmin/Instansi/Show', [
             'activeNav' => 'superadmin.instansi',
             'instansi' => [
-                'id' => $instansi->id,
-                'nama_instansi' => $instansi->nama_instansi,
-                'alamat' => $instansi->alamat,
-                'deskripsi_singkat' => $instansi->deskripsi_singkat,
-                'sub_instansi' => $instansi->subInstansi,
-                'admins' => $admins,
+                'id' => $agency->id,
+                'nama' => $agency->name,
+                'tipe' => $agency->type === 'government' ? 'pemerintah' : ($agency->type === 'private' ? 'swasta' : $agency->type),
+                'alamat' => $agency->address ?? '-',
+                'maps_link' => $agency->maps_link,
+                'maps_url' => $agency->maps_url,
+                'email' => $agency->contact_email ?? '-',
+                'deskripsi' => $agency->description ?? 'Instansi mitra terdaftar di sistem SIAP-PKL.',
+                'created_at' => $agency->created_at ? $agency->created_at->format('d M Y') : '-',
             ],
+            'bidangPkl' => $bidangPkl,
+            'adminList' => $adminList,
         ]);
     }
 }
