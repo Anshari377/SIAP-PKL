@@ -3,7 +3,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import TimelineStatus from '@/Components/TimelineStatus.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { getStatusLabel, getStatusBadgeClass, getTimelineSteps } from '@/utils/statusLabel';
+import { getStatusLabel, getStatusBadgeClass, getTimelineSteps, formatDate } from '@/utils/statusLabel';
 
 const props = defineProps({
     pendaftaranAktif: { type: Object, default: null },
@@ -15,7 +15,7 @@ const steps = computed(() => {
     return getTimelineSteps({
         status: p.status,
         created_at: p.tanggal,
-        updated_at: null,
+        updated_at: p.updated_at ?? null,
     });
 });
 </script>
@@ -46,7 +46,7 @@ const steps = computed(() => {
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="truncate text-sm font-bold text-ink-900">{{ pendaftaranAktif.judul }}</p>
-                            <p class="mt-0.5 text-xs text-ink-500 font-medium">{{ pendaftaranAktif.instansi }} · {{ pendaftaranAktif.tanggal }}</p>
+                            <p class="mt-0.5 text-xs text-ink-500 font-medium">{{ pendaftaranAktif.instansi }} · {{ formatDate(pendaftaranAktif.tanggal) }}</p>
                         </div>
                     </div>
                     <span :class="getStatusBadgeClass(pendaftaranAktif.status)" class="badge shrink-0 self-start sm:self-center">
