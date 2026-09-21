@@ -92,6 +92,34 @@ watch(
 );
 
 // ─── Readable date helper ────────────────────────────────────
+const formatDateToInput = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const applyNextAvailableDate = () => {
+    if (!availability.value?.next_available_date) return;
+
+    const [ny, nm, nd] = availability.value.next_available_date.split('-').map(Number);
+
+    if (form.start_date && form.end_date) {
+        const [sy, sm, sd] = form.start_date.split('-').map(Number);
+        const [ey, em, ed] = form.end_date.split('-').map(Number);
+        const currentStart = new Date(sy, sm - 1, sd);
+        const currentEnd = new Date(ey, em - 1, ed);
+
+        const diffDays = Math.max(0, Math.round((currentEnd.getTime() - currentStart.getTime()) / (1000 * 60 * 60 * 24)));
+        const newEnd = new Date(ny, nm - 1, nd + diffDays);
+
+        form.start_date = availability.value.next_available_date;
+        form.end_date = formatDateToInput(newEnd);
+    } else {
+        form.start_date = availability.value.next_available_date;
+    }
+};
+
 const formatReadableDate = (dateStr) => {
     if (!dateStr) return '-';
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -231,21 +259,36 @@ const submitForm = () => {
                                 <!-- Full -->
                                 <div
                                     v-else-if="availability?.available === false"
-                                    class="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+                                    class="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 sm:flex-row sm:items-center sm:justify-between"
                                 >
-                                    <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                                        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                                    </svg>
-                                    <span>
-                                        Seluruh <strong>{{ availability.kuota_total }} slot</strong> sudah terisi penuh
-                                        untuk periode ini (terisi: {{ availability.slot_terisi_periode }}).
-                                        Coba ubah rentang tanggal atau bidang.
-                                        <template v-if="availability.next_available_date">
-                                            Periode berikutnya tersedia mulai
-                                            <strong>{{ formatReadableDate(availability.next_available_date) }}</strong>.
-                                        </template>
-                                    </span>
+                                    <div class="flex items-start gap-2.5">
+                                        <svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                        </svg>
+                                        <div>
+                                            <p>
+                                                Seluruh <strong>{{ availability.kuota_total }} slot</strong> sudah terisi penuh
+                                                untuk periode ini (terisi: {{ availability.slot_terisi_periode }}).
+                                            </p>
+                                            <p v-if="availability.next_available_date" class="mt-1 text-xs text-red-800">
+                                                Periode berikutnya dengan kuota yang cukup tersedia mulai:
+                                                <strong class="font-bold underline">{{ formatReadableDate(availability.next_available_date) }}</strong>.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        v-if="availability.next_available_date"
+                                        type="button"
+                                        @click="applyNextAvailableDate"
+                                        class="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 active:scale-95"
+                                    >
+                                        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="9 11 12 14 22 4"/>
+                                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                        </svg>
+                                        Terapkan Tanggal Ini
+                                    </button>
                                 </div>
                             </div>
                         </div>

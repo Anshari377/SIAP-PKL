@@ -103,23 +103,9 @@ class PengajuanPklController extends Controller
             'tipe_pendaftaran' => $data['tipe'],
         ]);
 
-        $overlappingApps = Application::where('division_id', $divisionId)
-            ->active()
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereDate('start_date', '<=', $endDate)
-                    ->whereDate('end_date', '>=', $startDate);
-            })
-            ->withCount('members')
-            ->get();
+        $check = Application::checkPeriodAvailability($divisionId, $startDate, $endDate, $requestedSize);
 
-        $currentOccupied = $overlappingApps->sum(function (Application $app) {
-            return max(1, $app->members_count);
-        });
-
-        $division = Division::findOrFail($divisionId);
-        $availableSlots = $division->quota - $currentOccupied;
-
-        if ($requestedSize > $availableSlots) {
+        if (! $check['available']) {
             return response()->json(['message' => 'Kuota tidak mencukupi untuk periode tersebut'], 422);
         }
 
@@ -200,53 +186,20 @@ class PengajuanPklController extends Controller
             'end_date' => ['required', 'date', 'after_or_equal:start_date', 'after_or_equal:today'],
         ]);
 
-        Application::syncCompletedApplications();
+        $requiredSlots = max(1, (int) $request->input('required_slots', 1));
 
-        $divisionId = $request->input('division_id');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        $result = Application::checkPeriodAvailability(
+            (int) $request->input('division_id'),
+            $request->input('start_date'),
+            $request->input('end_date'),
+            $requiredSlots
+        );
 
-        $division = Division::findOrFail($divisionId);
-
-        // Hitung berapa slot yang terisi di periode yang diminta (overlap)
-        $overlappingApps = Application::where('division_id', $divisionId)
-            ->active()
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereDate('start_date', '<=', $endDate)
-                    ->whereDate('end_date', '>=', $startDate);
-            })
-            ->withCount('members')
-            ->get();
-
-        $currentOccupied = $overlappingApps->sum(fn (Application $app) => max(1, $app->members_count));
-        $availableSlots = $division->quota - $currentOccupied;
-
-        if ($availableSlots >= 1) {
-            return response()->json([
-                'available' => true,
-                'slot_tersedia' => $availableSlots,
-                'slot_terisi_periode' => $currentOccupied,
-                'kuota_total' => $division->quota,
-            ]);
+        if (! $result['available']) {
+            $result['message'] = 'Kuota penuh untuk periode ini';
         }
 
-        $earliestEndDate = Application::where('division_id', $divisionId)
-            ->active()
-            ->whereDate('end_date', '>=', $startDate)
-            ->min('end_date');
-
-        $nextAvailableDate = $earliestEndDate
-            ? \Carbon\Carbon::parse($earliestEndDate)->addDay()->format('Y-m-d')
-            : $startDate;
-
-        return response()->json([
-            'available' => false,
-            'message' => 'Kuota penuh untuk periode ini',
-            'next_available_date' => $nextAvailableDate,
-            'slot_tersedia' => 0,
-            'slot_terisi_periode' => $currentOccupied,
-            'kuota_total' => $division->quota,
-        ]);
+        return response()->json($result);
     }
 
     public function suratBalasan(Request $request, Application $application)

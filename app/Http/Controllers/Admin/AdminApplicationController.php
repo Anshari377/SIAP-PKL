@@ -60,19 +60,18 @@ class AdminApplicationController extends Controller
             $endDate = $application->end_date?->toDateString();
 
             if ($division && $startDate && $endDate) {
-                $occupied = Application::where('division_id', $division->id)
-                    ->where('id', '!=', $application->id)
-                    ->active()
-                    ->whereDate('start_date', '<=', $endDate)
-                    ->whereDate('end_date', '>=', $startDate)
-                    ->withCount('members')
-                    ->get()
-                    ->sum(fn ($app) => max(1, $app->members_count));
-
                 $needed = max(1, $application->members()->count());
-                if ($occupied + $needed > $division->quota) {
+                $check = Application::checkPeriodAvailability(
+                    $division->id,
+                    $startDate,
+                    $endDate,
+                    $needed,
+                    $application->id
+                );
+
+                if (! $check['available']) {
                     return back()->withErrors([
-                        'status' => "Kuota bidang {$division->nama} sudah penuh untuk periode tersebut (Terisi: {$occupied}/{$division->quota}).",
+                        'status' => "Kuota bidang {$division->nama} sudah penuh untuk periode tersebut (Terisi: {$check['slot_terisi_periode']}/{$check['kuota_total']}).",
                     ]);
                 }
             }
@@ -254,52 +253,23 @@ class AdminApplicationController extends Controller
             'end_date'    => ['required', 'date', 'after_or_equal:start_date'],
         ]);
 
-        Application::syncCompletedApplications();
+        $divisionId = (int) $request->input('division_id');
+        $startDate = (string) $request->input('start_date');
+        $endDate = (string) $request->input('end_date');
+        $requiredSlots = max(1, (int) $request->input('required_slots', 1));
 
-        $divisionId = $request->input('division_id');
-        $startDate  = $request->input('start_date');
-        $endDate    = $request->input('end_date');
+        $result = Application::checkPeriodAvailability(
+            $divisionId,
+            $startDate,
+            $endDate,
+            $requiredSlots
+        );
 
-        $division = $this->divisionQuery($request->user())->findOrFail($divisionId);
-
-        $overlappingApps = Application::where('division_id', $divisionId)
-            ->active()
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereDate('start_date', '<=', $endDate)
-                    ->whereDate('end_date', '>=', $startDate);
-            })
-            ->withCount('members')
-            ->get();
-
-        $currentOccupied = $overlappingApps->sum(fn (Application $app) => max(1, $app->members_count));
-        $availableSlots  = $division->quota - $currentOccupied;
-
-        if ($availableSlots >= 1) {
-            return response()->json([
-                'available'           => true,
-                'slot_tersedia'       => $availableSlots,
-                'slot_terisi_periode' => $currentOccupied,
-                'kuota_total'         => $division->quota,
-            ]);
+        if (! $result['available']) {
+            $result['message'] = 'Kuota penuh untuk periode ini';
         }
 
-        $earliestEndDate = Application::where('division_id', $divisionId)
-            ->active()
-            ->whereDate('end_date', '>=', $startDate)
-            ->min('end_date');
-
-        $nextAvailableDate = $earliestEndDate
-            ? \Carbon\Carbon::parse($earliestEndDate)->addDay()->format('Y-m-d')
-            : $startDate;
-
-        return response()->json([
-            'available'           => false,
-            'message'             => 'Kuota penuh untuk periode ini',
-            'next_available_date' => $nextAvailableDate,
-            'slot_tersedia'       => 0,
-            'slot_terisi_periode' => $currentOccupied,
-            'kuota_total'         => $division->quota,
-        ]);
+        return response()->json($result);
     }
 
     public function walkInStore(Request $request)
@@ -319,20 +289,16 @@ class AdminApplicationController extends Controller
         Application::syncCompletedApplications();
 
         $division = $this->divisionQuery($request->user())->findOrFail($data['division_id']);
-        $occupied = Application::query()
-            ->where('division_id', $division->id)
-            ->active()
-            ->where(function ($query) use ($data) {
-                $query->whereDate('start_date', '<=', $data['end_date'])
-                    ->whereDate('end_date', '>=', $data['start_date']);
-            })
-            ->withCount('members')
-            ->get()
-            ->sum(fn (Application $application) => max(1, $application->members_count));
+        $check = Application::checkPeriodAvailability(
+            $division->id,
+            $data['start_date'],
+            $data['end_date'],
+            1
+        );
 
-        if ($occupied >= $division->quota) {
+        if (! $check['available']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'division_id' => 'Kuota bidang penuh untuk periode tanggal tersebut (Slot terisi: ' . $occupied . '/' . $division->quota . ').',
+                'division_id' => 'Kuota bidang penuh untuk periode tanggal tersebut (Slot terisi: ' . $check['slot_terisi_periode'] . '/' . $check['kuota_total'] . ').',
             ]);
         }
 
