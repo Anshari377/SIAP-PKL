@@ -78,6 +78,63 @@ const confirmDelete = () => {
         router.delete(route('superadmin.instansi.destroy', props.instansi.id));
     }
 };
+
+// Bidang Modal State
+const showBidangModal = ref(false);
+const editingBidang = ref(null);
+
+const bidangForm = useForm({
+    nama: '',
+    kategori: 'Umum',
+    kuota_total: 5,
+    jurusan: '',
+    deskripsi: '',
+});
+
+const openAddBidangModal = () => {
+    editingBidang.value = null;
+    bidangForm.clearErrors();
+    bidangForm.nama = '';
+    bidangForm.kategori = 'Umum';
+    bidangForm.kuota_total = 5;
+    bidangForm.jurusan = '';
+    bidangForm.deskripsi = '';
+    showBidangModal.value = true;
+};
+
+const openEditBidangModal = (bidang) => {
+    editingBidang.value = bidang;
+    bidangForm.clearErrors();
+    bidangForm.nama = bidang.nama || '';
+    bidangForm.kategori = bidang.kategori || 'Umum';
+    bidangForm.kuota_total = bidang.kuota || 5;
+    bidangForm.jurusan = bidang.jurusan || '';
+    bidangForm.deskripsi = bidang.deskripsi || '';
+    showBidangModal.value = true;
+};
+
+const closeBidangModal = () => {
+    showBidangModal.value = false;
+    editingBidang.value = null;
+};
+
+const submitBidang = () => {
+    if (editingBidang.value) {
+        bidangForm.put(route('superadmin.instansi.bidang.update', [props.instansi.id, editingBidang.value.id]), {
+            onSuccess: () => closeBidangModal(),
+        });
+    } else {
+        bidangForm.post(route('superadmin.instansi.bidang.store', props.instansi.id), {
+            onSuccess: () => closeBidangModal(),
+        });
+    }
+};
+
+const confirmDeleteBidang = (bidang) => {
+    if (confirm(`Yakin ingin menghapus bidang "${bidang.nama}" dari instansi ini?`)) {
+        router.delete(route('superadmin.instansi.bidang.destroy', [props.instansi.id, bidang.id]));
+    }
+};
 </script>
 
 <template>
@@ -147,9 +204,20 @@ const confirmDelete = () => {
 
                 <!-- List Bidang PKL -->
                 <div class="glass-panel p-6">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h3 class="font-display text-base font-bold text-ink-900">Bidang PKL</h3>
-                        <span class="badge badge-info">{{ bidangPkl.length }} Bidang</span>
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-display text-base font-bold text-ink-900">Bidang PKL</h3>
+                            <span class="badge badge-info">{{ bidangPkl.length }} Bidang</span>
+                        </div>
+                        <button
+                            @click="openAddBidangModal"
+                            class="inline-flex items-center gap-1.5 rounded-xl border border-forest-300 bg-forest-50 px-3 py-1.5 text-xs font-semibold text-forest-800 hover:bg-forest-100 transition shadow-sm"
+                        >
+                            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Tambah Bidang PKL
+                        </button>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -161,12 +229,16 @@ const confirmDelete = () => {
                                     <th class="px-4 py-3">Kuota</th>
                                     <th class="px-4 py-3">Terisi</th>
                                     <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3 text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-ink-300/20">
                                 <tr v-for="(bidang, index) in bidangPkl" :key="bidang.id" class="transition hover:bg-forest-50/60">
                                     <td class="px-4 py-3.5 text-ink-500">{{ index + 1 }}</td>
-                                    <td class="px-4 py-3.5 font-semibold text-ink-900">{{ bidang.nama }}</td>
+                                    <td class="px-4 py-3.5 font-semibold text-ink-900">
+                                        {{ bidang.nama }}
+                                        <p v-if="bidang.kategori" class="text-xs font-normal text-ink-500">{{ bidang.kategori }}</p>
+                                    </td>
                                     <td class="px-4 py-3.5 text-ink-700">{{ bidang.kuota }}</td>
                                     <td class="px-4 py-3.5 text-ink-700">{{ bidang.terisi }}</td>
                                     <td class="px-4 py-3.5">
@@ -174,9 +246,31 @@ const confirmDelete = () => {
                                             {{ statusLabel(bidang.status) }}
                                         </span>
                                     </td>
+                                    <td class="px-4 py-3.5 text-right">
+                                        <div class="flex items-center justify-end gap-1">
+                                            <button
+                                                @click="openEditBidangModal(bidang)"
+                                                title="Edit Bidang"
+                                                class="rounded-lg p-1.5 text-ink-500 hover:bg-forest-50 hover:text-forest-700 transition"
+                                            >
+                                                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
+                                            </button>
+                                            <button
+                                                @click="confirmDeleteBidang(bidang)"
+                                                title="Hapus Bidang"
+                                                class="rounded-lg p-1.5 text-ink-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                                            >
+                                                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr v-if="bidangPkl.length === 0">
-                                    <td colspan="5" class="px-4 py-6 text-center text-ink-500">
+                                    <td colspan="6" class="px-4 py-6 text-center text-ink-500">
                                         Belum ada bidang PKL untuk instansi ini.
                                     </td>
                                 </tr>
@@ -312,6 +406,76 @@ const confirmDelete = () => {
                                 <button type="button" @click="closeEditModal" class="btn-secondary">Batal</button>
                                 <button type="submit" :disabled="form.processing" class="btn-primary">
                                     {{ form.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </Transition>
+
+            <!-- Tambah/Edit Bidang Modal -->
+            <Transition
+                enter-active-class="ease-out duration-200"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="ease-in duration-150"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div v-if="showBidangModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="absolute inset-0 bg-forest-950/50 backdrop-blur-sm" @click="closeBidangModal" />
+                    <div class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+                        <div class="mb-6 flex items-center justify-between">
+                            <div>
+                                <h3 class="font-display text-xl font-bold text-ink-900">
+                                    {{ editingBidang ? 'Ubah Bidang PKL' : 'Tambah Bidang PKL Baru' }}
+                                </h3>
+                                <p class="mt-1 text-sm text-ink-500">
+                                    {{ editingBidang ? 'Perbarui informasi bidang PKL instansi.' : 'Kelola bidang PKL untuk instansi mitra.' }}
+                                </p>
+                            </div>
+                            <button @click="closeBidangModal" class="grid h-8 w-8 place-items-center rounded-full text-ink-500 hover:bg-ink-100 transition">
+                                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+
+                        <form @submit.prevent="submitBidang" class="space-y-4">
+                            <div>
+                                <label class="field-label">Nama Bidang</label>
+                                <input v-model="bidangForm.nama" type="text" placeholder="Contoh: Teknologi Informasi" required class="field-input" />
+                                <div v-if="bidangForm.errors.nama" class="mt-1 text-xs text-rose-500">{{ bidangForm.errors.nama }}</div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label class="field-label">Kategori</label>
+                                    <input v-model="bidangForm.kategori" type="text" placeholder="Umum" class="field-input" />
+                                    <div v-if="bidangForm.errors.kategori" class="mt-1 text-xs text-rose-500">{{ bidangForm.errors.kategori }}</div>
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Kuota Total</label>
+                                    <input v-model="bidangForm.kuota_total" type="number" min="1" required class="field-input" />
+                                    <div v-if="bidangForm.errors.kuota_total" class="mt-1 text-xs text-rose-500">{{ bidangForm.errors.kuota_total }}</div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="field-label">Jurusan yang Relevan (Opsional)</label>
+                                <input v-model="bidangForm.jurusan" type="text" placeholder="Contoh: Teknik Informatika, Sistem Informasi (pisahkan dengan koma)" class="field-input" />
+                                <div v-if="bidangForm.errors.jurusan" class="mt-1 text-xs text-rose-500">{{ bidangForm.errors.jurusan }}</div>
+                            </div>
+
+                            <div>
+                                <label class="field-label">Deskripsi Bidang</label>
+                                <textarea v-model="bidangForm.deskripsi" rows="3" placeholder="Tuliskan deskripsi ringkas tugas/ruang lingkup bidang ini..." required class="field-input"></textarea>
+                                <div v-if="bidangForm.errors.deskripsi" class="mt-1 text-xs text-rose-500">{{ bidangForm.errors.deskripsi }}</div>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-3 pt-4 border-t border-ink-300/30">
+                                <button type="button" @click="closeBidangModal" class="btn-secondary">Batal</button>
+                                <button type="submit" :disabled="bidangForm.processing" class="btn-primary">
+                                    {{ bidangForm.processing ? 'Menyimpan...' : (editingBidang ? 'Simpan Perubahan' : 'Tambah Bidang') }}
                                 </button>
                             </div>
                         </form>

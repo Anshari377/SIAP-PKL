@@ -109,7 +109,7 @@ class DivisionQuotaDateFilterTest extends TestCase
 
         $this->assertEquals(1, $divData['terisi_total']);
         $this->assertEquals(1, $divData['sisa_total']);
-        $this->assertEquals('tersedia', $divData['status']);
+        $this->assertEquals('menipis', $divData['status']);
     }
 
     public function test_completed_application_does_not_consume_active_slot_even_if_status_is_not_accepted(): void

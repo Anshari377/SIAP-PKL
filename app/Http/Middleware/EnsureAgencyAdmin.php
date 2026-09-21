@@ -12,11 +12,7 @@ class EnsureAgencyAdmin
     {
         $user = $request->user();
 
-        if (! $user || ! $user->hasRole('agency_admin')) {
-            if ($user && $user->hasRole('super_admin')) {
-                return redirect()->route('superadmin.dashboard');
-            }
-
+        if (! $user || (! $user->hasRole('agency_admin') && ! $user->hasRole('super_admin'))) {
             if ($user && $user->hasRole('student')) {
                 return redirect()->route('home');
             }

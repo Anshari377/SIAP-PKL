@@ -90,6 +90,10 @@ Route::middleware('auth')->group(function () {
         Route::put('/instansi/{agency}', [SuperAdminInstansiController::class, 'update'])->name('instansi.update');
         Route::delete('/instansi/{agency}', [SuperAdminInstansiController::class, 'destroy'])->name('instansi.destroy');
 
+        Route::post('/instansi/{agency}/bidang', [SuperAdminInstansiController::class, 'storeBidang'])->name('instansi.bidang.store');
+        Route::put('/instansi/{agency}/bidang/{division}', [SuperAdminInstansiController::class, 'updateBidang'])->name('instansi.bidang.update');
+        Route::delete('/instansi/{agency}/bidang/{division}', [SuperAdminInstansiController::class, 'destroyBidang'])->name('instansi.bidang.destroy');
+
         Route::get('/undangan', [UndanganController::class, 'index'])->name('undangan.index');
         Route::post('/undangan', [UndanganController::class, 'store'])->name('undangan.store');
         Route::delete('/undangan/{user}', [UndanganController::class, 'destroy'])->name('undangan.destroy');

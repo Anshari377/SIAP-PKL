@@ -109,6 +109,10 @@ class AdminBidangController extends Controller
 
     private function queryFor($user)
     {
+        if ($user->hasRole('super_admin')) {
+            return Division::query();
+        }
+
         return $user->agency_id
             ? Division::query()->where('agency_id', $user->agency_id)
             : Division::query()->whereNull('agency_id');

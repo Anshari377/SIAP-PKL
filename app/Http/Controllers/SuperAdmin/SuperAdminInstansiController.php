@@ -8,6 +8,8 @@ use App\Models\AuditLog;
 use App\Models\Division;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class SuperAdminInstansiController extends Controller
@@ -215,8 +217,11 @@ class SuperAdminInstansiController extends Controller
             return [
                 'id' => $division->id,
                 'nama' => $division->nama,
-                'kuota' => $division->quota,
+                'kategori' => $division->kategori ?? 'Umum',
+                'deskripsi' => $division->deskripsi ?? '',
+                'kuota' => (int) $division->quota,
                 'terisi' => $terisi,
+                'jurusan' => is_array($division->jurusan) ? implode(', ', $division->jurusan) : ($division->jurusan ?? ''),
                 'status' => $status,
             ];
         });
@@ -246,5 +251,107 @@ class SuperAdminInstansiController extends Controller
             'bidangPkl' => $bidangPkl,
             'adminList' => $adminList,
         ]);
+    }
+
+    public function storeBidang(Request $request, Agency $agency)
+    {
+        $data = $request->validate([
+            'nama' => ['required', 'string', 'max:255'],
+            'kategori' => ['nullable', 'string', 'max:255'],
+            'deskripsi' => ['required', 'string'],
+            'kuota_total' => ['required', 'integer', 'min:1'],
+            'jurusan' => ['nullable', 'string'],
+        ]);
+
+        $division = DB::transaction(function () use ($agency, $data) {
+            return Division::create([
+                'agency_id' => $agency->id,
+                'slug' => Str::slug($data['nama']).'-'.Str::lower(Str::random(6)),
+                'nama' => $data['nama'],
+                'kategori' => $data['kategori'] ?? 'Umum',
+                'instansi' => $agency->name,
+                'deskripsi' => $data['deskripsi'],
+                'quota' => $data['kuota_total'],
+                'jurusan' => $this->parseJurusan($data['jurusan'] ?? ''),
+            ]);
+        });
+
+        if ($request->user()) {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'user_nama' => $request->user()->name,
+                'aksi' => "Tambah Bidang PKL ({$division->nama}) di Instansi ({$agency->name})",
+                'instansi' => $agency->name,
+                'ip_address' => $request->ip(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Bidang '{$division->nama}' berhasil ditambahkan ke instansi '{$agency->name}'.");
+    }
+
+    public function updateBidang(Request $request, Agency $agency, Division $division)
+    {
+        abort_if($division->agency_id !== $agency->id, 404);
+
+        $data = $request->validate([
+            'nama' => ['required', 'string', 'max:255'],
+            'kategori' => ['nullable', 'string', 'max:255'],
+            'deskripsi' => ['required', 'string'],
+            'kuota_total' => ['required', 'integer', 'min:1'],
+            'jurusan' => ['nullable', 'string'],
+        ]);
+
+        DB::transaction(function () use ($division, $agency, $data) {
+            $division->update([
+                'nama' => $data['nama'],
+                'kategori' => $data['kategori'] ?? $division->kategori,
+                'instansi' => $agency->name,
+                'deskripsi' => $data['deskripsi'],
+                'quota' => $data['kuota_total'],
+                'jurusan' => $this->parseJurusan($data['jurusan'] ?? ''),
+            ]);
+        });
+
+        if ($request->user()) {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'user_nama' => $request->user()->name,
+                'aksi' => "Ubah Bidang PKL ({$division->nama}) di Instansi ({$agency->name})",
+                'instansi' => $agency->name,
+                'ip_address' => $request->ip(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Bidang '{$division->nama}' berhasil diperbarui.");
+    }
+
+    public function destroyBidang(Request $request, Agency $agency, Division $division)
+    {
+        abort_if($division->agency_id !== $agency->id, 404);
+        abort_if($division->applications()->excludeDummy()->exists(), 422, 'Bidang yang sudah memiliki pengajuan tidak dapat dihapus.');
+
+        $nama = $division->nama;
+        $division->delete();
+
+        if ($request->user()) {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'user_nama' => $request->user()->name,
+                'aksi' => "Hapus Bidang PKL ({$nama}) di Instansi ({$agency->name})",
+                'instansi' => $agency->name,
+                'ip_address' => $request->ip(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Bidang '{$nama}' berhasil dihapus.");
+    }
+
+    private function parseJurusan(?string $jurusan): array
+    {
+        return collect(explode(',', (string) $jurusan))
+            ->map(fn ($value) => trim($value))
+            ->filter()
+            ->values()
+            ->all();
     }
 }
