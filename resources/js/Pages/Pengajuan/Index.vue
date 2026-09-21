@@ -74,12 +74,28 @@ const availability = ref(null);
 const checking = ref(false);
 
 const addMember = () => {
-    members.value.push({ name: '', nim: '', school: '', major: '', phone: '' });
+    members.value.push({
+        name: '',
+        nim: '',
+        school: form.ketua.school || '',
+        major: form.ketua.major || '',
+        phone: '',
+    });
 };
 
 const removeMember = (index) => {
     members.value.splice(index, 1);
 };
+
+watch(
+    members,
+    () => {
+        if (frontErrors.value.members) {
+            delete frontErrors.value.members;
+        }
+    },
+    { deep: true },
+);
 
 const selectedDivision = computed(() => {
     return props.divisions.find((d) => String(d.id) === String(form.division_id)) || null;
@@ -90,6 +106,9 @@ const availablePositions = computed(() => {
 });
 
 const sisaKuota = computed(() => {
+    if (availability.value?.slot_tersedia !== undefined) {
+        return Number(availability.value.slot_tersedia);
+    }
     if (!selectedDivision.value) return 0;
     return Number(selectedDivision.value.kuota_sisa ?? selectedDivision.value.kuota ?? 0);
 });
@@ -98,15 +117,28 @@ const anggotaBatas = computed(() => Math.max(0, sisaKuota.value - 1));
 
 const canAddMember = computed(() => {
     if (form.tipe !== 'kelompok') return false;
-    if (!selectedDivision.value) return true;
+    if (!form.division_id) return true;
+    if (availability.value?.slot_tersedia !== undefined) {
+        return members.value.length < anggotaBatas.value;
+    }
+    if (!form.start_date || !form.end_date || checking.value) {
+        return true;
+    }
     return members.value.length < anggotaBatas.value;
 });
 
 const quotaLimitMessage = computed(() => {
     if (form.tipe !== 'kelompok') return '';
-    if (!selectedDivision.value) return '';
-    if (members.value.length >= anggotaBatas.value) {
-        return `Sisa kuota bidang ini hanya ${sisaKuota.value} orang, tidak bisa menambah anggota lagi.`;
+    if (!form.division_id || !form.start_date || !form.end_date) return '';
+    if (checking.value) return '';
+
+    if (availability.value?.available === true) {
+        if (sisaKuota.value <= 1) {
+            return `Sisa kuota bidang pada periode ini hanya ${sisaKuota.value} slot (hanya cukup untuk ketua), tidak dapat menambah anggota kelompok.`;
+        }
+        if (members.value.length >= anggotaBatas.value) {
+            return `Maksimal anggota untuk periode ini adalah ${anggotaBatas.value} orang (Total slot: 1 ketua + ${members.value.length} anggota = ${sisaKuota.value} slot).`;
+        }
     }
     return '';
 });
@@ -246,10 +278,10 @@ const validateFrontend = () => {
             errors.members = 'Minimal tambahkan 1 anggota kelompok.';
         } else {
             const invalidIdx = members.value.findIndex(
-                (m) => !m.name.trim() || !m.nim.trim() || !m.school.trim() || !m.major.trim()
+                (m) => !m.name?.trim() || !m.nim?.trim()
             );
             if (invalidIdx >= 0) {
-                errors.members = `Data anggota ke-${invalidIdx + 1} belum lengkap.`;
+                errors.members = `Data anggota ke-${invalidIdx + 1} belum lengkap (Nama dan NIM/NISN wajib diisi).`;
             }
         }
     }
@@ -268,7 +300,11 @@ const validateFrontend = () => {
 
 const canSubmit = computed(() => {
     // Harus ada cek availability yang sudah selesai dan hasilnya 'tersedia'
-    return !checking.value && availability.value?.available === true && form.consent_pdp;
+    if (checking.value || availability.value?.available !== true || !form.consent_pdp) return false;
+    if (form.tipe === 'kelompok' && availability.value?.slot_tersedia !== undefined) {
+        return (1 + members.value.length) <= availability.value.slot_tersedia;
+    }
+    return true;
 });
 
 const submit = () => {
@@ -279,7 +315,11 @@ const submit = () => {
     form.transform((data) => ({
         ...data,
         ketua: { ...data.ketua },
-        members: members.value,
+        members: members.value.map((m) => ({
+            ...m,
+            school: m.school || data.ketua.school,
+            major: m.major || data.ketua.major,
+        })),
     })).post(route('pengajuan.store'), {
         forceFormData: true,
         onSuccess: () => {
@@ -658,6 +698,9 @@ const submit = () => {
                         </p>
                         <p v-else-if="availability?.available === false" class="text-center text-xs font-semibold text-red-600 sm:text-right">
                             Kuota tidak tersedia untuk periode ini. Ubah bidang atau rentang tanggal untuk mengaktifkan tombol kirim.
+                        </p>
+                        <p v-else-if="form.tipe === 'kelompok' && availability?.slot_tersedia !== undefined && (1 + members.length) > availability.slot_tersedia" class="text-center text-xs font-semibold text-red-600 sm:text-right">
+                            Total rombongan ({{ 1 + members.length }} orang) melebihi sisa kuota periode ini ({{ availability.slot_tersedia }} slot). Kurangi anggota kelompok.
                         </p>
                     </div>
                 </div>

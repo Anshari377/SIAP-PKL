@@ -86,10 +86,10 @@ class PengajuanPklController extends Controller
             'ketua.phone' => ['required', 'string', 'max:30'],
             'members' => ['required_if:tipe,kelompok', 'array', 'min:1'],
             'members.*.name' => ['required', 'string', 'max:255'],
-            'members.*.nim' => ['nullable', 'string', 'max:50'],
-            'members.*.school' => ['required', 'string', 'max:255'],
-            'members.*.major' => ['required', 'string', 'max:255'],
-            'members.*.phone' => ['required', 'string', 'max:30'],
+            'members.*.nim' => ['required', 'string', 'max:50'],
+            'members.*.school' => ['nullable', 'string', 'max:255'],
+            'members.*.major' => ['nullable', 'string', 'max:255'],
+            'members.*.phone' => ['nullable', 'string', 'max:30'],
             'document' => ['required', 'file', 'mimes:pdf', 'max:5120'],
             'consent_pdp' => ['required', 'accepted'],
         ]);
@@ -154,9 +154,9 @@ class PengajuanPklController extends Controller
             $application->members()->create([
                 'name' => $member['name'],
                 'nim' => $member['nim'] ?? null,
-                'school' => $member['school'],
-                'major' => $member['major'],
-                'phone' => $member['phone'],
+                'school' => $member['school'] ?? $data['ketua']['school'],
+                'major' => $member['major'] ?? $data['ketua']['major'],
+                'phone' => $member['phone'] ?? null,
             ]);
         }
 

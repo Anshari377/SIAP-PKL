@@ -3,7 +3,6 @@
 use App\Http\Middleware\EnsureAgencyAdmin;
 use App\Http\Middleware\EnsureOnboarded;
 use App\Http\Middleware\EnsureSuperAdmin;
-use App\Http\Middleware\EnsureTipeKelompok;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -27,7 +26,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'ensure.onboarded' => EnsureOnboarded::class,
-            'ensure.kelompok' => EnsureTipeKelompok::class,
             'ensure.agency_admin' => EnsureAgencyAdmin::class,
             'ensure.super_admin' => EnsureSuperAdmin::class,
         ]);

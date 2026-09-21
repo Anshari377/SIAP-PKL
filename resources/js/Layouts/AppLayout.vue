@@ -22,7 +22,6 @@ const studentNav = [
     { label: 'Home', href: route('home'), active: 'home', icon: 'home' },
     { label: 'Bidang PKL', href: route('bidang.index'), active: 'bidang', icon: 'briefcase' },
     { label: 'Pengajuan PKL', href: route('pengajuan.index'), active: 'pengajuan', icon: 'file-text' },
-    { label: 'Kelompok Saya', href: route('kelompok.index'), active: 'kelompok', icon: 'users' },
     { label: 'Riwayat', href: route('riwayat.index'), active: 'riwayat', icon: 'clock' },
     { label: 'Profile Saya', href: route('profile.edit'), active: 'profile', icon: 'user' },
 ];
@@ -35,15 +34,7 @@ const adminNav = [
     { label: 'Profile Saya', href: route('admin.profile.edit'), active: 'admin.profile', icon: 'user' },
 ];
 
-const filteredNav = computed(() => {
-    const nav = isAdmin.value ? adminNav : studentNav;
-    return nav.filter((item) => {
-        if (item.label === 'Kelompok Saya') {
-            return page.props.auth?.user?.tipe_pendaftaran === 'kelompok';
-        }
-        return true;
-    });
-});
+const filteredNav = computed(() => (isAdmin.value ? adminNav : studentNav));
 
 const current = page.props.activeNav ?? '';
 </script>

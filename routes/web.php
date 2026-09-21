@@ -5,7 +5,6 @@ use App\Http\Controllers\Admin\AdminBidangController;
 use App\Http\Controllers\Admin\AdminApplicationController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\KelompokController;
 use App\Http\Controllers\BidangController;
 use App\Http\Controllers\PengajuanPklController;
 use App\Http\Controllers\ProfileController;
@@ -51,10 +50,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengajuan/check-availability', [PengajuanPklController::class, 'checkAvailability'])->name('pengajuan.check-availability');
         Route::post('/pengajuan', [PengajuanPklController::class, 'store'])->name('pengajuan.store');
         Route::post('/pengajuan/{application}/reupload', [PengajuanPklController::class, 'reupload'])->name('pengajuan.reupload');
-        Route::middleware('ensure.kelompok')->group(function () {
-            Route::get('/kelompok', [KelompokController::class, 'index'])->name('kelompok.index');
-            Route::post('/kelompok/anggota', [KelompokController::class, 'storeAnggota'])->name('kelompok.anggota.store');
-        });
         Route::get('/status', [StatusPendaftaranController::class, 'index'])->name('status.index');
         Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
     });
