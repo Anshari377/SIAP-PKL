@@ -449,7 +449,6 @@ const submit = () => {
 
                     <!-- Posisi PKL — tampil hanya jika bidang dipilih dan memiliki > 1 posisi -->
                     <div v-if="selectedDivision && availablePositions.length > 1" class="md:col-span-3">
-                        <label class="field-label" for="position_id">Posisi PKL</label>
                         <select id="position_id" v-model="form.position_id" class="field-input">
                             <option value="">-- Pilih Posisi --</option>
                             <option v-for="pos in availablePositions" :key="pos.id" :value="String(pos.id)">

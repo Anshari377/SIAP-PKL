@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             AgencySeeder::class,
             PositionSeeder::class,
             ApplicationSeeder::class,
+            DiskominfoAgencySeeder::class,
         ]);
 
         // User::factory(10)->create();
