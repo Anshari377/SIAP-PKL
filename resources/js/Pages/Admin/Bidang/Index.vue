@@ -7,6 +7,8 @@ const props = defineProps({ divisions: { type: Array, default: () => [] } });
 const search = ref('');
 const bidang = ref('');
 
+const divisionNames = computed(() => [...new Set(props.divisions.map((d) => d.nama))]);
+
 const filteredBidang = computed(() => {
     return props.divisions.filter((item) => {
         const matchSearch = !search.value || item.nama.toLowerCase().includes(search.value.toLowerCase());
@@ -73,12 +75,7 @@ const handleDelete = (item) => {
                 <div class="w-full md:w-52">
                     <select v-model="bidang" class="field-input">
                         <option value="">Semua Bidang</option>
-                        <option value="Aplikasi dan Layanan E-Government">Aplikasi E-Government</option>
-                        <option value="Infrastruktur Jaringan dan Server">Infrastruktur Jaringan</option>
-                        <option value="Sekretariat dan Tata Usaha">Sekretariat</option>
-                        <option value="Diseminasi Informasi Publik">Diseminasi Informasi</option>
-                        <option value="Pengelolaan Data dan Statistik">Data dan Statistik</option>
-                        <option value="Hubungan Masyarakat dan Media">Hubungan Masyarakat</option>
+                        <option v-for="name in divisionNames" :key="name" :value="name">{{ name }}</option>
                     </select>
                 </div>
             </form>

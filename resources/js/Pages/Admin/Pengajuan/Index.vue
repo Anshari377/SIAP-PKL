@@ -24,7 +24,7 @@ const filteredPengajuan = computed(() => {
             sekolah: sekolahKampus,
             instansi: sekolahKampus,
             bidang: item.division?.nama ?? '-',
-            posisi: 'PKL',
+            posisi: item.position?.nama ?? item.division?.nama ?? 'Peserta PKL',
             tanggal: item.created_at,
         };
     }).filter((item) => {

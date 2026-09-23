@@ -63,6 +63,30 @@ const statusClass = computed(() => ['penuh', 'hampir-penuh'].includes(bidang.val
                                 </span>
                             </div>
                         </div>
+
+                        <!-- Sub-Posisi PKL -->
+                        <div class="border-t border-ink-300/30 pt-4">
+                            <h3 class="text-xs font-medium text-ink-500 uppercase tracking-wider mb-3">Sub-Posisi PKL</h3>
+                            <div v-if="(bidang.positions ?? []).length === 0" class="text-sm text-ink-500 italic">
+                                Belum ada sub-posisi yang ditambahkan.
+                            </div>
+                            <div v-else class="space-y-2">
+                                <div
+                                    v-for="pos in bidang.positions"
+                                    :key="pos.id"
+                                    class="rounded-lg border border-ink-300/40 bg-white/60 py-2.5 px-3.5"
+                                >
+                                    <div class="flex items-center justify-between gap-2">
+                                        <p class="font-semibold text-sm text-ink-900">{{ pos.nama }}</p>
+                                        <!-- <span v-if="pos.kuota" class="shrink-0 badge badge-info text-xs">Kuota: {{ pos.kuota }}</span> -->
+                                    </div>
+                                    <!-- <p v-if="pos.deskripsi" class="mt-1.5 text-xs text-ink-600 leading-relaxed">{{ pos.deskripsi }}</p>
+                                    <div v-if="(pos.jurusan ?? []).length" class="mt-2 flex flex-wrap gap-1.5">
+                                        <span v-for="j in (pos.jurusan ?? [])" :key="j" class="badge badge-info text-xs">{{ j }}</span>
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

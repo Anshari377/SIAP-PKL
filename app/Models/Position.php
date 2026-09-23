@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Application;
 
 class Position extends Model
 {
@@ -27,6 +28,11 @@ class Position extends Model
 
     public function pengajuan(): HasMany
     {
-        return $this->hasMany(PengajuanPkl::class);
+        return $this->hasMany(Application::class);
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(Application::class);
     }
 }

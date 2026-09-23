@@ -12,7 +12,7 @@ class StatusPendaftaranController extends Controller
     {
         Application::syncCompletedApplications();
 
-        $pendaftaran = Application::with(['division', 'members'])
+        $pendaftaran = Application::with(['division', 'members', 'position'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->first();

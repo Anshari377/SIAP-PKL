@@ -173,8 +173,13 @@ const submitRevision = () => {
                             </svg>
                         </div>
                         <div>
-                            <p class="font-semibold text-ink-900">{{ pengajuan.division?.nama ?? '-' }}</p>
-                            <p class="text-sm text-ink-500">{{ pengajuan.division?.instansi ?? '-' }}</p>
+                            <p class="font-semibold text-ink-900">
+                                {{ pengajuan.position?.nama ?? pengajuan.division?.nama ?? '-' }}
+                            </p>
+                            <p class="text-sm text-ink-500">
+                                {{ pengajuan.division?.nama ?? '-' }}
+                                <span v-if="pengajuan.division?.instansi" class="text-ink-400"> · {{ pengajuan.division.instansi }}</span>
+                            </p>
                         </div>
                     </div>
                 </div>

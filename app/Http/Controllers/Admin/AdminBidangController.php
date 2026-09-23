@@ -42,7 +42,7 @@ class AdminBidangController extends Controller
         $data = $this->validated($request);
 
         DB::transaction(function () use ($request, $data) {
-            $this->queryFor($request->user())->create([
+            $division = $this->queryFor($request->user())->create([
                 'agency_id' => $request->user()->agency_id,
                 'slug' => Str::slug($data['nama']).'-'.Str::lower(Str::random(6)),
                 'nama' => $data['nama'],
@@ -52,6 +52,27 @@ class AdminBidangController extends Controller
                 'quota' => $data['kuota_total'],
                 'jurusan' => $this->parseJurusan($data['jurusan'] ?? ''),
             ]);
+
+            $incomingPositions = $data['positions'] ?? [];
+            if (!empty($incomingPositions)) {
+                foreach ($incomingPositions as $pos) {
+                    $division->positions()->create([
+                        'nama' => $pos['nama'],
+                        'deskripsi' => $pos['deskripsi'] ?? '',
+                        'kuota' => (!empty($pos['kuota']) ? (int) $pos['kuota'] : 1),
+                        'jurusan' => is_array($pos['jurusan'] ?? null)
+                            ? $pos['jurusan']
+                            : $this->parseJurusan($pos['jurusan'] ?? ''),
+                    ]);
+                }
+            } else {
+                $division->positions()->create([
+                    'nama' => $data['nama'],
+                    'deskripsi' => '',
+                    'kuota' => $data['kuota_total'] ?: 1,
+                    'jurusan' => $this->parseJurusan($data['jurusan'] ?? ''),
+                ]);
+            }
         });
 
         return to_route('admin.bidang.index')->with('success', 'Bidang berhasil dibuat.');
@@ -75,14 +96,14 @@ class AdminBidangController extends Controller
 
     public function edit($bidang)
     {
-        $division = $this->queryFor(request()->user())->findOrFail($bidang);
+        $division = $this->queryFor(request()->user())->with('positions')->findOrFail($bidang);
 
         return Inertia::render('Admin/Bidang/Edit', ['activeNav' => 'admin.bidang', 'bidang' => $division]);
     }
 
     public function update(Request $request, $bidang)
     {
-        $division = $this->queryFor($request->user())->findOrFail($bidang);
+        $division = $this->queryFor($request->user())->with('positions')->findOrFail($bidang);
         $data = $this->validated($request);
 
         DB::transaction(function () use ($division, $data) {
@@ -93,6 +114,60 @@ class AdminBidangController extends Controller
                 'quota' => $data['kuota_total'],
                 'jurusan' => $this->parseJurusan($data['jurusan'] ?? ''),
             ]);
+
+            $incomingPositions = $data['positions'] ?? [];
+
+            if (empty($incomingPositions)) {
+                // Jika posisi dikosongkan, pastikan minimal 1 posisi default tetap ada
+                if ($division->positions()->count() === 0) {
+                    $division->positions()->create([
+                        'nama' => $data['nama'],
+                        'deskripsi' => '',
+                        'kuota' => $data['kuota_total'] ?: 1,
+                        'jurusan' => $this->parseJurusan($data['jurusan'] ?? ''),
+                    ]);
+                }
+            } else {
+                $incomingIds = collect($incomingPositions)->pluck('id')->filter()->values();
+
+                // Hapus posisi yang tidak ada di list baru (kecuali yang masih punya pengajuan aktif)
+                $division->positions()
+                    ->whereNotIn('id', $incomingIds)
+                    ->whereDoesntHave('applications', fn ($q) => $q->whereIn('status', ['pending', 'accepted', 'revision']))
+                    ->delete();
+
+                foreach ($incomingPositions as $pos) {
+                    if (!empty($pos['id'])) {
+                        // Update posisi existing menggunakan Eloquent model
+                        $position = $division->positions()->find($pos['id']);
+                        if ($position) {
+                            $updateData = ['nama' => $pos['nama']];
+                            if (isset($pos['deskripsi'])) {
+                                $updateData['deskripsi'] = $pos['deskripsi'] ?? '';
+                            }
+                            if (isset($pos['kuota']) && $pos['kuota'] !== '' && $pos['kuota'] !== null) {
+                                $updateData['kuota'] = (int) $pos['kuota'];
+                            }
+                            if (isset($pos['jurusan'])) {
+                                $updateData['jurusan'] = is_array($pos['jurusan'])
+                                    ? $pos['jurusan']
+                                    : $this->parseJurusan($pos['jurusan'] ?? '');
+                            }
+                            $position->update($updateData);
+                        }
+                    } else {
+                        // Buat posisi baru
+                        $division->positions()->create([
+                            'nama' => $pos['nama'],
+                            'deskripsi' => $pos['deskripsi'] ?? '',
+                            'kuota' => (!empty($pos['kuota']) ? (int) $pos['kuota'] : 1),
+                            'jurusan' => is_array($pos['jurusan'] ?? null)
+                                ? $pos['jurusan']
+                                : $this->parseJurusan($pos['jurusan'] ?? ''),
+                        ]);
+                    }
+                }
+            }
         });
 
         return to_route('admin.bidang.show', $division)->with('success', 'Bidang berhasil diperbarui.');
@@ -159,6 +234,12 @@ class AdminBidangController extends Controller
             'deskripsi' => ['required', 'string'],
             'kuota_total' => ['required', 'integer', 'min:1'],
             'jurusan' => ['nullable', 'string'],
+            'positions' => ['nullable', 'array'],
+            'positions.*.id' => ['nullable', 'integer'],
+            'positions.*.nama' => ['required_with:positions', 'string', 'max:255'],
+            'positions.*.deskripsi' => ['nullable', 'string'],
+            'positions.*.kuota' => ['nullable', 'integer', 'min:1'],
+            'positions.*.jurusan' => ['nullable', 'string'],
         ]);
     }
 

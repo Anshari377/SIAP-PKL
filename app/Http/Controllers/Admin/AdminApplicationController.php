@@ -147,7 +147,7 @@ class AdminApplicationController extends Controller
 
         $participants = $applications->flatMap(function (Application $application) {
             $members = $application->members;
-            $posisiNama = 'PKL';
+            $posisiNama = $application->position?->nama ?? $application->division?->nama ?? 'Peserta PKL';
 
             if ($members->isEmpty()) {
                 return [[

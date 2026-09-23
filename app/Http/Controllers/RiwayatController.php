@@ -10,7 +10,7 @@ class RiwayatController extends Controller
 {
     public function index(Request $request)
     {
-        $riwayat = Application::with('division')
+        $riwayat = Application::with(['division', 'position'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get()
@@ -20,7 +20,7 @@ class RiwayatController extends Controller
                     'status' => $item->status,
                     'created_at' => $item->created_at,
                     'bidang' => $item->division?->nama ?? 'Data tidak tersedia',
-                    'posisi' => 'Peserta PKL',
+                    'posisi' => $item->position?->nama ?? $item->division?->nama ?? 'Peserta PKL',
                     'instansi' => $item->division?->instansi ?? 'Data tidak tersedia',
                     'catatan_revisi' => $item->catatan_revisi,
                     'document_path' => $item->document_path,

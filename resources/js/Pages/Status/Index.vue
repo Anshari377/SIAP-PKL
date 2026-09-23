@@ -91,10 +91,13 @@ const submitReupload = () => {
                         </div>
                         <div>
                             <h3 class="font-display text-base font-bold text-ink-900">
-                                {{ pendaftaran?.division?.nama ?? pendaftaran?.position?.nama ?? 'Data tidak tersedia' }}
+                                {{ pendaftaran?.position?.nama ?? pendaftaran?.division?.nama ?? 'Data tidak tersedia' }}
                             </h3>
                             <p class="mt-0.5 text-sm text-ink-500">
-                                {{ pendaftaran?.division?.instansi ?? pendaftaran?.position?.division?.instansi ?? 'Data tidak tersedia' }}
+                                {{ pendaftaran?.division?.nama ?? 'Data tidak tersedia' }}
+                            </p>
+                            <p v-if="pendaftaran?.division?.instansi" class="mt-0.5 text-xs text-ink-400">
+                                {{ pendaftaran.division.instansi }}
                             </p>
                             <p class="mt-1 text-xs text-ink-500">
                                 Daftar: {{ formatDate(pendaftaran?.created_at) }}
