@@ -1,7 +1,7 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import BidangCard from '@/Components/BidangCard.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import {
     Search,
@@ -45,6 +45,19 @@ const minTanggalSelesai = computed(() => {
 const hasActiveFilter = computed(
     () => search.value !== '' || instansi.value !== '' || status.value !== '' || tanggalMulai.value !== '' || tanggalSelesai.value !== ''
 );
+
+const isLoggedIn = computed(() => Boolean(usePage().props.auth?.user));
+
+const groupedDivisions = computed(() => {
+    const groups = {};
+    for (const item of props.divisions) {
+        const key = item.instansi || 'Instansi Lainnya';
+        (groups[key] = groups[key] || []).push(item);
+    }
+    return Object.keys(groups)
+        .sort((a, b) => a.localeCompare(b))
+        .map((instansi) => ({ instansi, items: groups[instansi] }));
+});
 
 const statusOptions = [
     { value: '', label: 'Semua Status' },
@@ -154,7 +167,7 @@ const resetFilters = () => {
                             <span class="sr-only">Filter Instansi</span>
                             <select v-model="instansi" class="field-input appearance-none pr-8 w-full">
                                 <option value="">Semua Instansi</option>
-                                <option v-for="nama in instansi" :key="nama" :value="nama">{{ nama }}</option>
+                                <option v-for="nama in props.instansi" :key="nama" :value="nama">{{ nama }}</option>
                             </select>
                             <Building2 :size="16" :stroke-width="2" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400" />
                         </label>
@@ -222,16 +235,32 @@ const resetFilters = () => {
             </form>
         </section>
 
-        <!-- Grid Bidang -->
+        <!-- Bidang PKL Dikelompokkan per Instansi -->
         <section class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-            <div v-if="divisions.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                <BidangCard
-                    v-for="item in divisions"
-                    :key="item.id"
-                    :item="item"
-                    :detail-href="route('katalog.show', item.slug)"
-                    :primary="{ label: 'Daftar Sekarang', href: route('auth.google') }"
-                />
+            <div v-if="divisions.length > 0" class="space-y-12">
+                <section v-for="group in groupedDivisions" :key="group.instansi">
+                    <div class="mb-5 flex items-center gap-3">
+                        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-forest-600/10 text-forest-700">
+                            <Building2 :size="20" :stroke-width="1.8" />
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="font-display text-lg font-bold text-ink-900">{{ group.instansi }}</h3>
+                            <p class="text-xs text-ink-500">{{ group.items.length }} bidang PKL</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                        <BidangCard
+                            v-for="item in group.items"
+                            :key="item.id"
+                            :item="item"
+                            :detail-href="route('katalog.show', item.slug)"
+                            :primary="isLoggedIn
+                                ? { label: 'Daftar Sekarang', href: route('pengajuan.index', { division: item.id }) }
+                                : { label: 'Daftar Sekarang', href: route('login'), external: true }"
+                        />
+                    </div>
+                </section>
             </div>
 
             <!-- Empty State -->

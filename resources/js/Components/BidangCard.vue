@@ -145,8 +145,15 @@ const statusMeta = (item) => {
             <Link :href="detailHref" class="btn-secondary px-3 py-2.5 text-xs">
                 Lihat Detail
             </Link>
+            <a
+                v-if="primary?.external"
+                :href="primary.href"
+                class="btn-primary px-3 py-2.5 text-xs"
+            >
+                {{ primary.label }}
+            </a>
             <Link
-                v-if="primary"
+                v-else-if="primary"
                 :href="primary.href"
                 class="btn-primary px-3 py-2.5 text-xs"
             >

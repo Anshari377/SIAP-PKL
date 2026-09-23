@@ -1,12 +1,14 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { MapPin, ExternalLink } from 'lucide-vue-next';
 
 const props = defineProps({
     division: { type: Object, required: true },
 });
+
+const isLoggedIn = computed(() => Boolean(usePage().props.auth?.user));
 
 const location = computed(() => ({
     alamat: props.division?.agency?.address || props.division?.alamat_lengkap || props.division?.agency?.alamat_lengkap || '',
@@ -189,11 +191,25 @@ const statusMeta = (division) => {
                         </div>
 
                         <div class="pt-3 border-t border-ink-300/30">
-                            <Link :href="route('auth.google')" class="btn-primary w-full text-center text-sm">
+                            <a
+                                v-if="!isLoggedIn"
+                                :href="route('login')"
+                                class="btn-primary w-full text-center text-sm"
+                            >
+                                Daftar Sekarang
+                            </a>
+                            <Link
+                                v-else
+                                :href="route('pengajuan.index', { division: props.division.id })"
+                                class="btn-primary w-full text-center text-sm"
+                            >
                                 Daftar Sekarang
                             </Link>
-                            <p class="mt-3 text-center text-[11px] leading-relaxed text-ink-500">
+                            <p v-if="!isLoggedIn" class="mt-3 text-center text-[11px] leading-relaxed text-ink-500">
                                 Anda akan diarahkan ke halaman login Google untuk melanjutkan pendaftaran.
+                            </p>
+                            <p v-else class="mt-3 text-center text-[11px] leading-relaxed text-ink-500">
+                                Anda akan diarahkan ke halaman pengajuan untuk bidang ini.
                             </p>
                         </div>
                     </div>
