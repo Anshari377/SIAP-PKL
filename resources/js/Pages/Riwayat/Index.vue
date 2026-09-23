@@ -1,9 +1,17 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { getStatusLabel, getStatusBadgeClass, formatDate } from '@/utils/statusLabel';
+import { computed } from 'vue';
+import { getStatusLabel, getStatusBadgeClass, getEffectiveStatus, formatDate } from '@/utils/statusLabel';
 
-defineProps({ riwayat: { type: Array, default: () => [] } });
+const props = defineProps({ riwayat: { type: Array, default: () => [] } });
+
+const normalizedRiwayat = computed(() => {
+    return props.riwayat.map((item) => ({
+        ...item,
+        status: getEffectiveStatus(item),
+    }));
+});
 </script>
 
 <template>
@@ -29,7 +37,7 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-ink-300/20">
-                        <tr v-for="(item, index) in riwayat" :key="item.id" class="transition hover:bg-forest-50/60">
+                        <tr v-for="(item, index) in normalizedRiwayat" :key="item.id" class="transition hover:bg-forest-50/60">
                             <td class="px-4 py-4 text-ink-500">{{ index + 1 }}</td>
                             <td class="px-4 py-4 font-semibold text-ink-900">
                                 {{ item.bidang }}
@@ -64,7 +72,7 @@ defineProps({ riwayat: { type: Array, default: () => [] } });
                                 </div>
                             </td>
                         </tr>
-                        <tr v-if="riwayat.length === 0">
+                        <tr v-if="normalizedRiwayat.length === 0">
                             <td colspan="7" class="px-4 py-10 text-center text-ink-500">
                                 Belum ada riwayat pendaftaran.
                             </td>

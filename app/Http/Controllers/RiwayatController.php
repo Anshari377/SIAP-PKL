@@ -10,6 +10,8 @@ class RiwayatController extends Controller
 {
     public function index(Request $request)
     {
+        Application::syncCompletedApplications();
+
         $riwayat = Application::with(['division', 'position'])
             ->where('user_id', $request->user()->id)
             ->latest()
@@ -18,6 +20,8 @@ class RiwayatController extends Controller
                 return [
                     'id' => $item->id,
                     'status' => $item->status,
+                    'start_date' => $item->start_date?->toDateString(),
+                    'end_date' => $item->end_date?->toDateString(),
                     'created_at' => $item->created_at,
                     'bidang' => $item->division?->nama ?? 'Data tidak tersedia',
                     'posisi' => $item->position?->nama ?? $item->division?->nama ?? 'Peserta PKL',

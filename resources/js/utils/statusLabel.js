@@ -96,13 +96,24 @@ export const formatDate = (dateString, customTime = null) => {
 export const formatStartDate = (dateString) => formatDate(dateString, '08.00');
 export const formatEndDate = (dateString) => formatDate(dateString, '16.00');
 
+export const getEffectiveStatus = (item) => {
+    if (!item) return 'pending';
+    const status = typeof item === 'string' ? item : (item.status || 'pending');
+    const endDate = typeof item === 'object' ? (item.end_date || item.tanggal_selesai) : null;
+    if ((status === 'accepted' || status === 'diterima') && endDate && isPastEndDate(endDate)) {
+        return 'completed';
+    }
+    return status;
+};
+
 export const getTimelineSteps = (pendaftaran) => {
     if (!pendaftaran) return [];
 
     const rawStatus = (pendaftaran.status || 'pending').toLowerCase();
-    const createdAt = formatDate(pendaftaran.created_at);
-    const updatedAt = formatDate(pendaftaran.updated_at || pendaftaran.created_at);
-    const isCompleted = rawStatus === 'completed' || rawStatus === 'selesai';
+    const createdAt = formatDate(pendaftaran.created_at || pendaftaran.tanggal);
+    const updatedAt = formatDate(pendaftaran.updated_at || pendaftaran.created_at || pendaftaran.tanggal);
+    const endDate = pendaftaran.end_date || pendaftaran.tanggal_selesai;
+    const isCompleted = rawStatus === 'completed' || rawStatus === 'selesai' || (rawStatus === 'accepted' && isPastEndDate(endDate));
 
     const steps = [{
         label: 'Pengajuan Dibuat',
@@ -128,7 +139,7 @@ export const getTimelineSteps = (pendaftaran) => {
         steps.push({ label: 'Diterima', date: updatedAt, status: 'completed' });
         steps.push({
             label: 'Selesai',
-            date: isCompleted ? (pendaftaran.end_date ? formatEndDate(pendaftaran.end_date) : updatedAt) : '-',
+            date: isCompleted ? (endDate ? formatEndDate(endDate) : updatedAt) : '-',
             status: isCompleted ? 'completed' : 'pending',
         });
         return steps;

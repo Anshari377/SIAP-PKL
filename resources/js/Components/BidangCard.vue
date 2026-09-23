@@ -90,13 +90,14 @@ const statusMeta = (item) => {
             </div>
             <Link
                 :href="detailHref"
-                class="font-display text-lg font-bold leading-snug text-ink-900 transition hover:text-forest-700"
+                class="font-display text-lg font-bold leading-snug text-ink-900 transition hover:text-forest-700 line-clamp-2 max-w-full"
+                :title="item.nama"
             >
                 {{ item.nama }}
             </Link>
-            <p class="mt-1.5 flex items-center justify-center gap-1.5 text-sm text-ink-500">
+            <p class="mt-1.5 flex items-center justify-center gap-1.5 text-sm text-ink-500 max-w-full">
                 <Building2 :size="14" :stroke-width="2" class="shrink-0" />
-                {{ item.instansi }}
+                <span class="truncate" :title="item.instansi">{{ item.instansi }}</span>
             </p>
             <p v-if="instansiLocation(item).alamat" class="mt-2 flex items-start justify-center gap-1.5 text-xs leading-relaxed text-ink-500">
                 <MapPin :size="14" :stroke-width="2" class="mt-0.5 shrink-0" />

@@ -3,19 +3,25 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import TimelineStatus from '@/Components/TimelineStatus.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { getStatusLabel, getStatusBadgeClass, getTimelineSteps, formatDate } from '@/utils/statusLabel';
+import { getStatusLabel, getStatusBadgeClass, getTimelineSteps, getEffectiveStatus, formatDate } from '@/utils/statusLabel';
 
 const props = defineProps({
     pendaftaranAktif: { type: Object, default: null },
+});
+
+const effectiveStatus = computed(() => {
+    return getEffectiveStatus(props.pendaftaranAktif);
 });
 
 const steps = computed(() => {
     const p = props.pendaftaranAktif;
     if (!p) return [];
     return getTimelineSteps({
-        status: p.status,
-        created_at: p.tanggal,
+        ...p,
+        status: effectiveStatus.value,
+        created_at: p.created_at || p.tanggal,
         updated_at: p.updated_at ?? null,
+        end_date: p.end_date || p.tanggal_selesai,
     });
 });
 </script>
@@ -49,8 +55,8 @@ const steps = computed(() => {
                             <p class="mt-0.5 text-xs text-ink-500 font-medium">{{ pendaftaranAktif.instansi }} · {{ formatDate(pendaftaranAktif.tanggal) }}</p>
                         </div>
                     </div>
-                    <span :class="getStatusBadgeClass(pendaftaranAktif.status)" class="badge shrink-0 self-start sm:self-center">
-                        {{ getStatusLabel(pendaftaranAktif.status) }}
+                    <span :class="getStatusBadgeClass(effectiveStatus)" class="badge shrink-0 self-start sm:self-center">
+                        {{ getStatusLabel(effectiveStatus) }}
                     </span>
                 </div>
 

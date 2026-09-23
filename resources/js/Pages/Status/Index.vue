@@ -3,11 +3,19 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import TimelineStatus from '@/Components/TimelineStatus.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
-import { getStatusLabel, getStatusBadgeClass, getTimelineSteps, formatDate } from '@/utils/statusLabel';
+import { getStatusLabel, getStatusBadgeClass, getTimelineSteps, getEffectiveStatus, formatDate } from '@/utils/statusLabel';
 
 const props = defineProps({ pendaftaran: { type: Object, default: null } });
 
-const steps = computed(() => getTimelineSteps(props.pendaftaran));
+const effectiveStatus = computed(() => getEffectiveStatus(props.pendaftaran));
+
+const steps = computed(() => {
+    if (!props.pendaftaran) return [];
+    return getTimelineSteps({
+        ...props.pendaftaran,
+        status: effectiveStatus.value,
+    });
+});
 
 const showReuploadModal = ref(false);
 const reuploadError = ref('');
@@ -107,13 +115,13 @@ const submitReupload = () => {
 
                     <div class="mt-6 pt-4 border-t border-ink-300/30 flex items-center justify-between">
                         <span class="text-xs text-ink-500 font-medium">Status Pengajuan</span>
-                        <span :class="getStatusBadgeClass(pendaftaran?.status)" class="badge">
-                            {{ getStatusLabel(pendaftaran?.status) }}
+                        <span :class="getStatusBadgeClass(effectiveStatus)" class="badge">
+                            {{ getStatusLabel(effectiveStatus) }}
                         </span>
                     </div>
 
                     <!-- Surat Balasan download button -->
-                    <div v-if="['accepted', 'rejected', 'completed'].includes(pendaftaran?.status)" class="mt-4 pt-3 border-t border-ink-300/20">
+                    <div v-if="['accepted', 'rejected', 'completed'].includes(effectiveStatus)" class="mt-4 pt-3 border-t border-ink-300/20">
                         <a v-if="pendaftaran?.surat_balasan_url"
                             :href="pendaftaran.surat_balasan_url"
                             target="_blank"

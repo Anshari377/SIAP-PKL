@@ -203,7 +203,7 @@ const current = page.props.activeNav ?? '';
                 </div>
             </header>
 
-            <main class="flex-1 p-4 sm:p-6">
+            <main class="flex-1 p-4 sm:p-6 min-w-0">
                 <div v-if="page.props.flash?.error" class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 shadow-sm">
                     {{ page.props.flash.error }}
                 </div>

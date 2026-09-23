@@ -13,9 +13,11 @@ class HomeController extends Controller
     {
         $userId = $request->user()->id;
 
-        $pengajuanAktif = Application::with('division')
+        Application::syncCompletedApplications();
+
+        $pengajuanAktif = Application::with(['division', 'position'])
             ->where('user_id', $userId)
-            ->whereIn('status', ['pending', 'accepted', 'revision'])
+            ->whereIn('status', ['pending', 'accepted', 'revision', 'completed'])
             ->latest()
             ->first();
 
@@ -29,10 +31,14 @@ class HomeController extends Controller
                 'diterima' => Application::where('user_id', $userId)->active()->count(),
             ],
             'pendaftaranAktif' => $pengajuanAktif ? [
-                'judul' => $pengajuanAktif->division?->nama ?? 'Pengajuan PKL',
+                'id' => $pengajuanAktif->id,
+                'judul' => $pengajuanAktif->position?->nama ?? $pengajuanAktif->division?->nama ?? 'Pengajuan PKL',
                 'instansi' => $pengajuanAktif->division?->instansi ?? '-',
                 'tanggal' => $pengajuanAktif->created_at?->toISOString(),
+                'created_at' => $pengajuanAktif->created_at?->toISOString(),
                 'updated_at' => $pengajuanAktif->updated_at?->toISOString(),
+                'start_date' => $pengajuanAktif->start_date?->toDateString(),
+                'end_date' => $pengajuanAktif->end_date?->toDateString(),
                 'status' => $pengajuanAktif->status,
             ] : null,
             'pengumuman' => [],

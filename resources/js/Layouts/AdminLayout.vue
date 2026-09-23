@@ -199,7 +199,7 @@ const current = page.props.activeNav ?? '';
                 </div>
             </header>
 
-            <main class="flex-1 p-4 sm:p-6">
+            <main class="flex-1 p-4 sm:p-6 min-w-0">
                 <slot />
             </main>
         </div>
