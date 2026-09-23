@@ -7,12 +7,17 @@ import { Info } from 'lucide-vue-next';
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const roles = computed(() => page.props.auth.roles || []);
+const instansi = computed(() => page.props.auth.instansi ?? null);
 
 const adminUser = computed(() => ({
     name: user.value?.name || '-',
     email: user.value?.email || '-',
-    role: roles.value.includes('super_admin') ? 'Super Admin' : (roles.value.includes('agency_admin') ? 'Admin Instansi' : 'Admin'),
-    instansi: user.value?.instansi || 'Dinas Komunikasi dan Informatika Provinsi Kalimantan Timur',
+    role: roles.value.includes('super_admin')
+        ? 'Super Admin'
+        : (roles.value.includes('agency_admin')
+            ? `Admin ${instansi.value?.nama_singkat ?? 'Instansi'}`
+            : 'Admin'),
+    instansi: instansi.value?.nama ?? user.value?.instansi ?? '-',
     avatar: user.value?.avatar || null,
 }));
 

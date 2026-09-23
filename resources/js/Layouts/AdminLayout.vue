@@ -1,11 +1,12 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import FlashToast from '@/Components/FlashToast.vue';
 
 defineProps({ title: { type: String, default: '' } });
 
 const page = usePage();
+const instansi = computed(() => page.props.auth?.instansi ?? null);
 const sidebarOpen = ref(true);
 const mobileOpen = ref(false);
 const avatarFailed = ref(false);
@@ -69,7 +70,7 @@ const current = page.props.activeNav ?? '';
                 </div>
                 <div v-if="sidebarOpen || mobileOpen" class="flex flex-col min-w-0">
                     <span class="font-display text-base font-bold tracking-tight text-white">SIAP-PKL</span>
-                    <span class="text-[10px] text-gold-400 font-semibold tracking-wider uppercase">Diskominfo Samarinda</span>
+                    <span class="text-[10px] text-gold-400 font-semibold tracking-wider uppercase">{{ instansi?.nama_singkat ?? 'Diskominfo Samarinda' }}</span>
                 </div>
                 <button
                     v-if="mobileOpen"

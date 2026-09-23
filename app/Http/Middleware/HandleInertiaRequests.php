@@ -29,18 +29,52 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user() ? array_merge($request->user()->toArray(), [
-                    'tipe_pendaftaran' => $request->user()->tipe_pendaftaran,
+                'user' => $user ? array_merge($user->toArray(), [
+                    'tipe_pendaftaran' => $user->tipe_pendaftaran,
                 ]) : null,
-                'roles' => $request->user() ? $request->user()->getRoleNames() : [],
+                'roles' => $user ? $user->getRoleNames() : [],
+                'instansi' => $this->resolveInstansi($user),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
         ];
+    }
+
+    private function resolveInstansi($user): ?array
+    {
+        if (! $user) {
+            return null;
+        }
+
+        $agency = $user->agency;
+
+        if ($agency) {
+            return [
+                'id' => $agency->id,
+                'nama' => $agency->name,
+                'nama_singkat' => $agency->nama_singkat ?: $agency->name,
+                'slug' => $agency->slug,
+                'logo' => $agency->logo,
+            ];
+        }
+
+        if ($user->instansi) {
+            return [
+                'id' => null,
+                'nama' => $user->instansi,
+                'nama_singkat' => $user->instansi,
+                'slug' => null,
+                'logo' => null,
+            ];
+        }
+
+        return null;
     }
 }

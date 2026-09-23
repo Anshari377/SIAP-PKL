@@ -1,8 +1,11 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { getStatusLabel, getStatusBadgeClass, formatDate, isPastEndDate } from '@/utils/statusLabel';
+
+const page = usePage();
+const instansi = computed(() => page.props.auth?.instansi ?? null);
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
@@ -32,8 +35,8 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
     <Head title="Admin Dashboard" />
     <AdminLayout title="Dashboard Admin">
         <div class="mb-6">
-            <h2 class="font-display text-xl font-bold text-ink-900">Selamat Datang, Admin Instansi</h2>
-            <p class="mt-1 text-sm text-ink-500">Ringkasan aktivitas PKL Diskominfo Samarinda hari ini.</p>
+            <h2 class="font-display text-xl font-bold text-ink-900">Selamat Datang, Admin {{ instansi?.nama_singkat ?? 'Instansi' }}</h2>
+            <p class="mt-1 text-sm text-ink-500">Ringkasan aktivitas PKL {{ instansi?.nama_singkat ?? 'instansi' }} hari ini.</p>
         </div>
 
         <!-- 4 Stat Cards -->
@@ -41,7 +44,6 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Total Bidang</p>
-                    <span class="rounded-full bg-forest-500/10 px-2 py-0.5 text-[10px] font-semibold text-forest-600">Aktif</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-ink-900">{{ stats.total_bidang }}</p>
                 <svg class="mt-3 h-6 w-full text-forest-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">
@@ -52,7 +54,6 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Pengajuan Baru</p>
-                    <span class="rounded-full bg-forest-500/10 px-2 py-0.5 text-[10px] font-semibold text-forest-600">+3</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-ink-900">{{ stats.pengajuan_baru }}</p>
                 <svg class="mt-3 h-6 w-full text-forest-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">
@@ -63,7 +64,6 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Menunggu Verifikasi</p>
-                    <span class="rounded-full bg-gold-500/15 px-2 py-0.5 text-[10px] font-semibold text-gold-500">Perlu Ditinjau</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-gold-500">{{ stats.menunggu_verifikasi }}</p>
                 <svg class="mt-3 h-6 w-full text-gold-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">
@@ -74,7 +74,6 @@ const bidangAktif = computed(() => props.bidangAktif.map((item) => ({
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Peserta Aktif</p>
-                    <span class="rounded-full bg-status-success/10 px-2 py-0.5 text-[10px] font-semibold text-status-success">On Progress</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-status-success">{{ stats.peserta_aktif }}</p>
                 <svg class="mt-3 h-6 w-full text-status-success opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">

@@ -40,7 +40,6 @@ const aksiBadge = (aksi) => {
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Total Instansi Terdaftar</p>
-                    <span class="rounded-full bg-forest-500/10 px-2 py-0.5 text-[10px] font-semibold text-forest-600">Aktif</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-ink-900">{{ stats.total_instansi }}</p>
                 <svg class="mt-3 h-6 w-full text-forest-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">
@@ -51,7 +50,6 @@ const aksiBadge = (aksi) => {
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Total Admin Instansi Aktif</p>
-                    <span class="rounded-full bg-forest-500/10 px-2 py-0.5 text-[10px] font-semibold text-forest-600">Terdaftar</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-ink-900">{{ stats.total_admin_aktif }}</p>
                 <svg class="mt-3 h-6 w-full text-forest-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">
@@ -62,7 +60,6 @@ const aksiBadge = (aksi) => {
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Total Pengajuan System-wide</p>
-                    <span class="rounded-full bg-gold-500/15 px-2 py-0.5 text-[10px] font-semibold text-gold-500">Semua Instansi</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-gold-500">{{ stats.total_pengajuan_systemwide }}</p>
                 <svg class="mt-3 h-6 w-full text-gold-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">
@@ -73,7 +70,6 @@ const aksiBadge = (aksi) => {
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <p class="text-xs font-medium text-ink-500 uppercase tracking-wider">Undangan Menunggu</p>
-                    <span class="rounded-full bg-status-warning/15 px-2 py-0.5 text-[10px] font-semibold text-gold-500">Perlu Ditindak</span>
                 </div>
                 <p class="mt-3 font-display text-3xl font-bold text-status-warning">{{ stats.undangan_menunggu }}</p>
                 <svg class="mt-3 h-6 w-full text-gold-500 opacity-80" viewBox="0 0 120 24" fill="none" aria-hidden="true" preserveAspectRatio="none">

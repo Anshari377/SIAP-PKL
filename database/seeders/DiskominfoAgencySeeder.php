@@ -14,13 +14,15 @@ class DiskominfoAgencySeeder extends Seeder
     {
         DB::transaction(function () {
             $agency = Agency::updateOrCreate(
-                ['name' => 'Dinas Komunikasi dan Informatika Kaltim'],
+                ['slug' => 'diskominfo-kaltim'],
                 [
+                    'name' => 'Dinas Komunikasi dan Informatika Kota Samarinda',
+                    'nama_singkat' => 'Diskominfo Samarinda',
                     'type' => 'government',
                     'address' => 'Jl. Kesuma Bangsa No. 12, Samarinda',
-                    'maps_link' => 'https://maps.google.com/?q=Dinas+Komunikasi+dan+Informatika+Kaltim+Samarinda',
+                    'maps_link' => 'https://maps.google.com/?q=Dinas+Komunikasi+dan+Informatika+Samarinda',
                     'contact_email' => 'admin@dkominfo.kaltimprov.go.id',
-                    'description' => 'Instansi teknis Penyelenggara Pusat Data dan Layanan Informasi Pemerintah Provinsi Kalimantan Timur.',
+                    'description' => 'Instansi teknis Penyelenggara Pusat Data dan Layanan Informasi Pemerintah Kota Samarinda.',
                 ]
             );
 

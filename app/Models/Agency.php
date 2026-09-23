@@ -11,7 +11,7 @@ class Agency extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'type', 'address', 'maps_link', 'contact_email', 'description',
+        'name', 'nama_singkat', 'slug', 'logo', 'type', 'address', 'maps_link', 'contact_email', 'description',
     ];
 
     protected $appends = ['maps_url'];
