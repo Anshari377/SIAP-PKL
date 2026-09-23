@@ -161,7 +161,7 @@ const resetFilters = () => {
                             <span class="sr-only">Filter Instansi</span>
                             <select v-model="instansi" class="field-input appearance-none pr-8 w-full">
                                 <option value="">Semua Instansi</option>
-                                <option v-for="nama in instansi" :key="nama" :value="nama">{{ nama }}</option>
+                                <option v-for="nama in props.instansi" :key="nama" :value="nama">{{ nama }}</option>
                             </select>
                             <Building2 :size="16" :stroke-width="2" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400" />
                         </label>
